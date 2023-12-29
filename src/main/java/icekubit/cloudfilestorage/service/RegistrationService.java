@@ -1,7 +1,7 @@
 package icekubit.cloudfilestorage.service;
 
-import icekubit.cloudfilestorage.dto.UserDto;
-import icekubit.cloudfilestorage.model.User;
+import icekubit.cloudfilestorage.model.dto.UserDto;
+import icekubit.cloudfilestorage.model.entity.User;
 import icekubit.cloudfilestorage.repo.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

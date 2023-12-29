@@ -1,6 +1,6 @@
 package icekubit.cloudfilestorage.controller;
 
-import icekubit.cloudfilestorage.dto.UserDto;
+import icekubit.cloudfilestorage.model.dto.UserDto;
 import icekubit.cloudfilestorage.service.CustomUserDetailsService;
 import icekubit.cloudfilestorage.service.RegistrationService;
 import jakarta.servlet.http.HttpServletRequest;

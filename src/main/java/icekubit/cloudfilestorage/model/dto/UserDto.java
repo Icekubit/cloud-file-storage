@@ -1,4 +1,4 @@
-package icekubit.cloudfilestorage.dto;
+package icekubit.cloudfilestorage.model.dto;
 
 import lombok.*;
 

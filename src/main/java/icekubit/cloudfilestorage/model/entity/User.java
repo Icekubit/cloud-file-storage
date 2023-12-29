@@ -1,4 +1,4 @@
-package icekubit.cloudfilestorage.model;
+package icekubit.cloudfilestorage.model.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

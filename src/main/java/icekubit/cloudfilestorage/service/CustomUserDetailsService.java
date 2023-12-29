@@ -1,7 +1,7 @@
 package icekubit.cloudfilestorage.service;
 
 
-import icekubit.cloudfilestorage.model.User;
+import icekubit.cloudfilestorage.model.entity.User;
 import icekubit.cloudfilestorage.repo.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
