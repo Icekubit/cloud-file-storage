@@ -28,8 +28,7 @@ public class WebSecurityConfig {
                         .loginPage("/login")
                         .permitAll()
                 )
-                .logout((logout) -> logout.permitAll())
-                .securityContext().securityContextRepository(securityContextRepository);
+                .logout((logout) -> logout.permitAll());
 
         return http.build();
     }
