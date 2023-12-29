@@ -23,11 +23,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByName(name);
         UserDetails userDetails =
                 org.springframework.security.core.userdetails.User.builder()
-                        .username(user.getEmail())
+                        .username(user.getName())
                         .password(user.getPassword())
                         .roles("USER")
                         .build();
-
         return userDetails;
     }
 }
