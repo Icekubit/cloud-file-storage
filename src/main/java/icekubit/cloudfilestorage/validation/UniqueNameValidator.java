@@ -1,6 +1,5 @@
 package icekubit.cloudfilestorage.validation;
 
-import icekubit.cloudfilestorage.validation.UniqueNameConstraint;
 import icekubit.cloudfilestorage.repo.UserRepository;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

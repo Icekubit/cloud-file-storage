@@ -1,5 +1,7 @@
 package icekubit.cloudfilestorage.controller;
 
+import icekubit.cloudfilestorage.exception.UniqueEmailConstraintException;
+import icekubit.cloudfilestorage.exception.UniqueNameConstraintException;
 import icekubit.cloudfilestorage.model.dto.UserDto;
 import icekubit.cloudfilestorage.service.CustomUserDetailsService;
 import icekubit.cloudfilestorage.service.RegistrationService;
@@ -14,10 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
@@ -40,10 +40,21 @@ public class RegistrationController {
     @PostMapping("/registration")
     public String registerAndLogin(HttpServletRequest request, HttpServletResponse response,
                                    @Valid UserDto userDto, BindingResult bindingResult) {
+
         if (bindingResult.hasErrors()) {
             return "registration";
         }
-        registrationService.registerNewUser(userDto);
+
+        try {
+            registrationService.registerNewUser(userDto);
+        } catch (UniqueNameConstraintException e) {
+            bindingResult.rejectValue("name", "name", "The user with this name already exists");
+            return "registration";
+        } catch (UniqueEmailConstraintException e) {
+            bindingResult.rejectValue("email", "email", "The user with this email already exists");
+            return "registration";
+        }
+
         loginAfterRegistration(request, response, userDto);
         return "redirect:/hello";
     }
