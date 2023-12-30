@@ -5,6 +5,7 @@ import icekubit.cloudfilestorage.service.CustomUserDetailsService;
 import icekubit.cloudfilestorage.service.RegistrationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,14 +33,16 @@ public class RegistrationController {
     private SecurityContextRepository securityContextRepository;
 
     @GetMapping("/registration")
-    public String showRegistrationForm(Model model) {
-        model.addAttribute("userDto", new UserDto());
+    public String showRegistrationForm(UserDto userDto) {
         return "registration";
     }
 
     @PostMapping("/registration")
     public String registerAndLogin(HttpServletRequest request, HttpServletResponse response,
-            @ModelAttribute("userDto") UserDto userDto) {
+                                   @Valid UserDto userDto, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return "registration";
+        }
         registrationService.registerNewUser(userDto);
         loginAfterRegistration(request, response, userDto);
         return "redirect:/hello";
