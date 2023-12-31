@@ -16,8 +16,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 public class WebSecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   SecurityContextRepository securityContextRepository)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests

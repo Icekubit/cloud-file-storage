@@ -48,10 +48,12 @@ public class RegistrationController {
         try {
             registrationService.registerNewUser(userDto);
         } catch (UniqueNameConstraintException e) {
-            bindingResult.rejectValue("name", "name", "The user with this name already exists");
+            bindingResult.rejectValue("name", "UniqueNameConstraint",
+                    "The user with this name already exists");
             return "registration";
         } catch (UniqueEmailConstraintException e) {
-            bindingResult.rejectValue("email", "email", "The user with this email already exists");
+            bindingResult.rejectValue("email", "UniqueEmailConstraint",
+                    "The user with this email already exists");
             return "registration";
         }
 

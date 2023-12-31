@@ -12,6 +12,7 @@ import lombok.*;
 @Builder
 @Getter
 @Setter
+@ToString
 public class UserDto {
     @Size(min = 3, max = 20, message = "Name must be between {min} and {max} characters")
     @UniqueNameConstraint
