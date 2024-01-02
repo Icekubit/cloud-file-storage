@@ -8,6 +8,7 @@ import icekubit.cloudfilestorage.repo.UserRepository;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +16,9 @@ public class RegistrationService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private String nameConstraint;
     private String emailConstraint;
@@ -28,7 +32,7 @@ public class RegistrationService {
     public void registerNewUser(UserDto userDto) {
         User newUser = User.builder()
                 .name(userDto.getName())
-                .password(userDto.getPassword())
+                .password(passwordEncoder.encode(userDto.getPassword()))
                 .email(userDto.getEmail())
                 .build();
         try {

@@ -17,6 +17,6 @@ public class UniqueNameValidator implements
 
     @Override
     public boolean isValid(String nameField, ConstraintValidatorContext context) {
-        return userRepository.findByName(nameField) == null;
+        return userRepository.findByName(nameField).isEmpty();
     }
 }

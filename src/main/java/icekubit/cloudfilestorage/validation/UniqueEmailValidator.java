@@ -1,6 +1,5 @@
 package icekubit.cloudfilestorage.validation;
 
-import icekubit.cloudfilestorage.validation.UniqueEmailConstraint;
 import icekubit.cloudfilestorage.repo.UserRepository;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
@@ -18,6 +17,6 @@ public class UniqueEmailValidator implements
 
     @Override
     public boolean isValid(String emailField, ConstraintValidatorContext context) {
-        return userRepository.findByEmail(emailField) == null;
+        return userRepository.findByEmail(emailField).isEmpty();
     }
 }
