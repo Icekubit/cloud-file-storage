@@ -16,6 +16,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -59,8 +61,8 @@ public class RegistrationServiceIT {
                 .email("test@gmail.com")
                 .build();
         registrationService.registerNewUser(testUser);
-        User maybeUser = userRepository.findByName("test");
-        assertThat(maybeUser).isNotNull();
+        Optional<User> userOptional = userRepository.findByName("test");
+        assertThat(userOptional).isNotEmpty();
     }
 
     @Test
