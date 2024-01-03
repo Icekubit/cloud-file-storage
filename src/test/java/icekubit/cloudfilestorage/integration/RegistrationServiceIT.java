@@ -10,11 +10,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
 
@@ -25,34 +28,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @SpringBootTest
 @TestPropertySource("classpath:test-application.properties")
 @Transactional
+@Testcontainers
 public class RegistrationServiceIT {
 
+    @Container
+    @ServiceConnection
     private static final MySQLContainer<?> container = new MySQLContainer<>("mysql:latest")
             .withDatabaseName("my_db");
-
-    @BeforeAll
-    static void runContainer() {
-        container.start();
-    }
-
-    @AfterAll
-    static void stopContainer() {
-        container.stop();
-    }
-
-    @DynamicPropertySource
-    static void mysqlProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", container::getJdbcUrl);
-    }
 
     @Autowired
     private icekubit.cloudfilestorage.service.RegistrationService registrationService;
 
     @Autowired
     private UserRepository userRepository;
-
-
-
+    
     @Test
     void databaseContainsUserAfterRegistration() {
         UserDto testUser = UserDto.builder()
