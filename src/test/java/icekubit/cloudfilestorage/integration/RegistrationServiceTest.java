@@ -1,5 +1,6 @@
 package icekubit.cloudfilestorage.integration;
 
+import icekubit.cloudfilestorage.TestBeans;
 import icekubit.cloudfilestorage.exception.UniqueEmailConstraintException;
 import icekubit.cloudfilestorage.exception.UniqueNameConstraintException;
 import icekubit.cloudfilestorage.model.dto.UserDto;
@@ -8,12 +9,8 @@ import icekubit.cloudfilestorage.repo.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
 
@@ -21,15 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
-@SpringBootTest
+@SpringBootTest(classes = TestBeans.class)
 @TestPropertySource("classpath:test-application.properties")
 @Transactional
-@Testcontainers
 public class RegistrationServiceTest {
-
-    @Container
-    @ServiceConnection
-    static final PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:latest");
 
     @Autowired
     private icekubit.cloudfilestorage.service.RegistrationService registrationService;
