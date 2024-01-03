@@ -4,14 +4,14 @@ services:
   myapp:
     build: .
     environment:
-      MYSQL_HOST: mysqldb
+      POSTGRES_HOST: postgresqldb
     ports:
       - "8080:8080"
     depends_on:
-      - mysqldb
+      - postgresqldb
 
-  mysqldb:
-    image: mysql
+  postgresqldb:
+    image: postgres
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: my_db
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: my_db

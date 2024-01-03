@@ -5,17 +5,13 @@ import icekubit.cloudfilestorage.exception.UniqueNameConstraintException;
 import icekubit.cloudfilestorage.model.dto.UserDto;
 import icekubit.cloudfilestorage.model.entity.User;
 import icekubit.cloudfilestorage.repo.UserRepository;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -29,19 +25,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @TestPropertySource("classpath:test-application.properties")
 @Transactional
 @Testcontainers
-public class RegistrationServiceIT {
+public class RegistrationServiceTest {
 
     @Container
     @ServiceConnection
-    private static final MySQLContainer<?> container = new MySQLContainer<>("mysql:latest")
-            .withDatabaseName("my_db");
+    static final PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:latest");
 
     @Autowired
     private icekubit.cloudfilestorage.service.RegistrationService registrationService;
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Test
     void databaseContainsUserAfterRegistration() {
         UserDto testUser = UserDto.builder()
