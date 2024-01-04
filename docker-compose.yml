@@ -1,17 +1,10 @@
 version: "3.8"
 
 services:
-  myapp:
-    build: .
-    environment:
-      POSTGRES_HOST: postgresqldb
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgresqldb
-
   postgresqldb:
     image: postgres
     environment:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: my_db
+    ports:
+      - "5432:5432"
