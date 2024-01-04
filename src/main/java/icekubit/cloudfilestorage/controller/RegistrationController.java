@@ -8,7 +8,6 @@ import icekubit.cloudfilestorage.service.RegistrationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -23,14 +22,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Controller
 public class RegistrationController {
 
-    @Autowired
-    private RegistrationService registrationService;
+    private final RegistrationService registrationService;
+    private final CustomUserDetailsService userDetailsService;
+    private final SecurityContextRepository securityContextRepository;
 
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    @Autowired
-    private SecurityContextRepository securityContextRepository;
+    public RegistrationController(RegistrationService registrationService,
+                                  CustomUserDetailsService userDetailsService,
+                                  SecurityContextRepository securityContextRepository) {
+        this.registrationService = registrationService;
+        this.userDetailsService = userDetailsService;
+        this.securityContextRepository = securityContextRepository;
+    }
 
     @GetMapping("/registration")
     public String showRegistrationForm(UserDto userDto) {
