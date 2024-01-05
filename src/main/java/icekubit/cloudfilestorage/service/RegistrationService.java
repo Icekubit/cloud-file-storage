@@ -6,11 +6,13 @@ import icekubit.cloudfilestorage.model.dto.UserDto;
 import icekubit.cloudfilestorage.model.entity.User;
 import icekubit.cloudfilestorage.repo.UserRepository;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class RegistrationService {
 
     private final UserRepository userRepository;
@@ -46,5 +48,6 @@ public class RegistrationService {
                 throw new UniqueEmailConstraintException();
             }
         }
+        log.info("User was added to database: " + userDto);
     }
 }
