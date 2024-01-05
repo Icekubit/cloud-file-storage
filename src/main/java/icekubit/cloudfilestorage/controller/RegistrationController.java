@@ -8,6 +8,7 @@ import icekubit.cloudfilestorage.service.RegistrationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
+@Slf4j
 public class RegistrationController {
 
     private final RegistrationService registrationService;
@@ -52,10 +54,12 @@ public class RegistrationController {
         } catch (UniqueNameConstraintException e) {
             bindingResult.rejectValue("name", "UniqueNameConstraint",
                     "The user with this name already exists");
+            log.info("Exception: " + e);
             return "registration";
         } catch (UniqueEmailConstraintException e) {
             bindingResult.rejectValue("email", "UniqueEmailConstraint",
                     "The user with this email already exists");
+            log.info("Exception: " + e);
             return "registration";
         }
 
