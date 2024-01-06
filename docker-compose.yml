@@ -17,3 +17,5 @@ services:
       server /data
     environment:
       - MINIO_CONSOLE_ADDRESS=:9001
+      - MINIO_ACCESS_KEY=key
+      - MINIO_SECRET_KEY=secret_key
