@@ -2,6 +2,7 @@ package icekubit.cloudfilestorage.minio;
 
 import io.minio.*;
 import io.minio.errors.*;
+import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -91,18 +92,16 @@ public class MinioService {
 
     }
 
+    @SneakyThrows
     public boolean isPathValid(String path, int userId) {
-        try {
-            return minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(DEFAULT_BUCKET_NAME)
-                            .object("user-" + userId + "-files/" + path)
-                            .build()) != null;
-        } catch (Exception e) {
-            if (e.getMessage().contains("The specified key does not exist")) {
-                return false;
+        Iterable<Result<Item>> results = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(DEFAULT_BUCKET_NAME)
+                        .prefix("user-" + userId + "-files/" + path)
+                        .build());
+            for (Result<Item> result : results) {
+                System.out.println(result.get().objectName());
             }
-            throw new RuntimeException(e);
-        }
+        return results.iterator().hasNext();
     }
 }

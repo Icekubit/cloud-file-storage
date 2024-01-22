@@ -2,6 +2,7 @@ package icekubit.cloudfilestorage.controller;
 
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
@@ -23,18 +24,20 @@ public class HomePageController {
 
     @GetMapping("/")
     public String showHomePage(Authentication authentication,
+                               HttpSession httpSession,
                                @RequestParam(required = false) String path,
                                Model model) {
-        int userId = 0;
-        if (authentication != null && authentication.isAuthenticated()) {
+        Integer userId = (Integer) httpSession.getAttribute("userId");
+        if (userId == null && authentication != null && authentication.isAuthenticated()) {
             userId = getUserId(authentication);
+            httpSession.setAttribute("userId", userId);
         }
         if (path != null && minioService.isPathValid(path, userId)) {
-            model.addAttribute("path", path);
+            model.addAttribute("path", "user-" + userId + "-files/" + path);
         } else if (path != null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } else {
-            model.addAttribute("path", "/");
+            model.addAttribute("path", "user-" + userId + "-files/");
         }
         return "home";
     }
