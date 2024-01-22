@@ -17,6 +17,7 @@ import java.security.NoSuchAlgorithmException;
 @Slf4j
 public class MinioService {
     private final MinioClient minioClient;
+    private final String DEFAULT_BUCKET_NAME = "user-files";
 
     public MinioService(MinioClient minioClient) {
         this.minioClient = minioClient;
@@ -87,5 +88,20 @@ public class MinioService {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public boolean isPathValid(String path) {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .object(path)
+                            .build()) != null;
+        } catch (Exception e) {
+            if (e.getMessage().contains("The specified key does not exist")) {
+                return false;
+            }
+            throw new RuntimeException(e);
+        }
     }
 }

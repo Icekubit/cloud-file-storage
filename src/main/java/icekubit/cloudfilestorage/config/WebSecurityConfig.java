@@ -21,7 +21,11 @@ public class WebSecurityConfig {
             throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/home", "/registration", "/error", "/upload").permitAll()
+                        .requestMatchers("/home", "/registration", "/error", "/upload").permitAll()
+                        .requestMatchers(request -> {
+                            String path = request.getParameter("path");
+                            return "/".equals(request.getServletPath()) && (path == null || path.isEmpty());
+                        }).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form
