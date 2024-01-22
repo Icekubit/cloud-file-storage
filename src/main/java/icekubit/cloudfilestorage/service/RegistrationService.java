@@ -55,6 +55,6 @@ public class RegistrationService {
             }
         }
         log.info("User was added to database: " + userDto);
-        minioService.createFolder("user-" + newUser.getId() + "-files");
+        minioService.createFolder("user-" + newUser.getId() + "-files/");
     }
 }

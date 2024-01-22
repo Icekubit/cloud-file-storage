@@ -68,6 +68,7 @@ public class MinioService {
                             .stream(
                                     file.getInputStream(), -1, 10485760)
                             .build());
+            log.info("The file " + minioPathToFile + " is successfully added to the bucket " + DEFAULT_BUCKET_NAME);
         } catch (ErrorResponseException e) {
             throw new RuntimeException(e);
         } catch (InsufficientDataException e) {
@@ -90,12 +91,12 @@ public class MinioService {
 
     }
 
-    public boolean isPathValid(String path) {
+    public boolean isPathValid(String path, int userId) {
         try {
             return minioClient.getObject(
                     GetObjectArgs.builder()
                             .bucket(DEFAULT_BUCKET_NAME)
-                            .object(path)
+                            .object("user-" + userId + "-files/" + path)
                             .build()) != null;
         } catch (Exception e) {
             if (e.getMessage().contains("The specified key does not exist")) {
