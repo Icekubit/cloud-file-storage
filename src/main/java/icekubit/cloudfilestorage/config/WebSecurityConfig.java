@@ -21,7 +21,7 @@ public class WebSecurityConfig {
             throws Exception {
         http
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/", "/home", "/registration", "/error").permitAll()
+                        .requestMatchers("/", "/home", "/registration", "/error", "/upload").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin((form) -> form
