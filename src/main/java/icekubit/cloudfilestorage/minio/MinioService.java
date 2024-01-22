@@ -92,16 +92,23 @@ public class MinioService {
 
     }
 
-    @SneakyThrows
-    public boolean isPathValid(String path, int userId) {
+    public boolean doesFolderExist(String path, int userId) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(DEFAULT_BUCKET_NAME)
-                        .prefix("user-" + userId + "-files/" + path)
+                        .prefix(getDirNameByUserId(userId) + path)
                         .build());
-            for (Result<Item> result : results) {
-                System.out.println(result.get().objectName());
+        if (results.iterator().hasNext()) {
+            try {
+                return results.iterator().next().get().isDir();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
-        return results.iterator().hasNext();
+        }
+        return false;
+    }
+
+    private String getDirNameByUserId(Integer userId) {
+        return "user-" + userId + "-files/";
     }
 }

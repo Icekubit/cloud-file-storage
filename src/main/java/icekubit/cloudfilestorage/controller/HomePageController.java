@@ -32,12 +32,18 @@ public class HomePageController {
             userId = getUserId(authentication);
             httpSession.setAttribute("userId", userId);
         }
-        if (path != null && minioService.isPathValid(path, userId)) {
+
+        if (path != null && path.endsWith("/")) {
+            return "redirect:/?path=" + path.substring(0, path.length() - 1);
+        }
+
+
+        if (path != null && minioService.doesFolderExist(path, userId)) {
             model.addAttribute("path", "user-" + userId + "-files/" + path);
         } else if (path != null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         } else {
-            model.addAttribute("path", "user-" + userId + "-files/");
+            model.addAttribute("path", "user-" + userId + "-files");
         }
         return "home";
     }
