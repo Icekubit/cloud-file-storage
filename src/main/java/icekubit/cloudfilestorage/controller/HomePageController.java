@@ -8,13 +8,16 @@ import io.minio.Result;
 import io.minio.messages.Item;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -59,6 +62,7 @@ public class HomePageController {
                 path = "";
             }
             var listOfItems = minioService.getListOfItems(path, userId);
+            model.addAttribute("path", path);
             model.addAttribute("root", "user-" + userId + "-files");
             model.addAttribute("listOfItems", listOfItems);
             model.addAttribute("breadCrumbs", makeBreadCrumbsFromPath(path));
@@ -93,6 +97,23 @@ public class HomePageController {
         }
 
         return breadCrumbs;
+    }
+
+    @PostMapping("/")
+    public String handleFileUpload(@RequestParam MultipartFile file,
+                                                   @RequestParam String path,
+                                                   HttpSession httpSession) {
+        System.out.println(file.getOriginalFilename());
+        System.out.println(path);
+        Integer userId = (Integer) httpSession.getAttribute("userId");
+        String minioPathToFile = "";
+        if (path.isEmpty()) {
+            minioPathToFile = "user-" + userId + "-files/" + file.getOriginalFilename();
+        } else {
+            minioPathToFile = "user-" + userId + "-files/" + path + "/" + file.getOriginalFilename();
+        }
+        minioService.uploadMultipartFile(minioPathToFile, file);
+        return "redirect:/?path=" + path;
     }
 
 
