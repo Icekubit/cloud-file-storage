@@ -21,7 +21,13 @@
 
         <div>
             <div th:if="${#authorization.expression('isAuthenticated()')}">
-                <span th:text="${path}"></span>
+                <a th:href="@{/}" th:text="${root}"></a>
+                <span th:if="${!breadCrumbs.isEmpty()}">
+                    <span th:each="breadCrumb: ${breadCrumbs}">
+                        <span> -> </span>
+                        <a th:href="@{/(path=${#uris.escapePath(breadCrumb.pathForLink)})}" th:text="${breadCrumb.displayName}"></a>
+                    </span>
+                </span>
                 <ul>
                     <li th:each="element : ${listOfItems}">
                         <div th:if="${element.getIsDirectory()}">

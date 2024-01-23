@@ -1,5 +1,6 @@
 package icekubit.cloudfilestorage.controller;
 
+import icekubit.cloudfilestorage.dto.BreadCrumbDto;
 import icekubit.cloudfilestorage.dto.MinioItemDto;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Controller
@@ -57,8 +59,9 @@ public class HomePageController {
                 path = "";
             }
             var listOfItems = minioService.getListOfItems(path, userId);
-            model.addAttribute("path", "user-" + userId + "-files/" + path);
+            model.addAttribute("root", "user-" + userId + "-files");
             model.addAttribute("listOfItems", listOfItems);
+            model.addAttribute("breadCrumbs", makeBreadCrumbsFromPath(path));
         } else if (path != null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
@@ -73,13 +76,23 @@ public class HomePageController {
         return userRepository.findByName(userName).get().getId();
     }
 
-    private MinioItemDto convertMinioItemToDto(Item item) {
-        MinioItemDto result = new MinioItemDto();
-        result.setIsDirectory(item.isDir());
-        result.setPath(item.objectName());
-        String path = item.objectName();
-        result.setRelativePath(path.substring(path.indexOf("-files") + 7));
-        return result;
+    private List<BreadCrumbDto> makeBreadCrumbsFromPath(String path) {
+        if (path.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<BreadCrumbDto> breadCrumbs = new ArrayList<>();
+        String[] breadCrumbsNames = path.split("/");
+        String pathForLink = "";
+        for (String breadCrumbName: breadCrumbsNames) {
+            BreadCrumbDto breadCrumbDto = new BreadCrumbDto();
+            breadCrumbDto.setDisplayName(breadCrumbName);
+            pathForLink = pathForLink + breadCrumbName + "/";
+            breadCrumbDto.setPathForLink(pathForLink);
+            breadCrumbs.add(breadCrumbDto);
+        }
+
+        return breadCrumbs;
     }
 
 
