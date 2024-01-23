@@ -122,14 +122,14 @@ public class MinioService {
         List<MinioItemDto> listOfItems = new ArrayList<>();
         for (Result<Item> result: results) {
             try {
+                // skip if resource is source folder to exclude it from listOfItems
+                if (prefix.equals(result.get().objectName())) {
+                    continue;
+                }
                 listOfItems.add(convertMinioItemToDto(result.get()));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }
-
-        if (path.isEmpty()) {
-            listOfItems.remove(0);
         }
         return listOfItems;
     }
