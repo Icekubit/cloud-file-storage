@@ -2,6 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
       xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
+    <meta charset="UTF-8"/>
     <title>Spring Security Example</title>
 </head>
     <body>
@@ -21,6 +22,17 @@
         <div>
             <div th:if="${#authorization.expression('isAuthenticated()')}">
                 <span th:text="${path}"></span>
+                <ul>
+                    <li th:each="element : ${listOfItems}">
+                        <div th:if="${element.getIsDirectory()}">
+                            <a th:href="@{/(path=${#uris.escapePath(element.relativePath)})}"
+                               th:text="${element.getPath()}"></a>
+                        </div>
+                        <div th:if="${!element.getIsDirectory()}">
+                            <span th:text="${element.getPath()}"></span>
+                        </div>
+                    </li>
+                </ul>
             </div>
         </div>
     </body>

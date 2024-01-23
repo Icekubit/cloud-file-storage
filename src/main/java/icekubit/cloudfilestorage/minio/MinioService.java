@@ -1,5 +1,6 @@
 package icekubit.cloudfilestorage.minio;
 
+import icekubit.cloudfilestorage.dto.MinioItemDto;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
@@ -13,6 +14,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -108,7 +112,38 @@ public class MinioService {
         return false;
     }
 
+    public List<MinioItemDto> getListOfItems(String path, int userId) {
+        String prefix = path.isEmpty() ? getDirNameByUserId(userId) : getDirNameByUserId(userId) + path + "/";
+        var results = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(DEFAULT_BUCKET_NAME)
+                        .prefix(prefix)
+                        .build());
+        List<MinioItemDto> listOfItems = new ArrayList<>();
+        for (Result<Item> result: results) {
+            try {
+                listOfItems.add(convertMinioItemToDto(result.get()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if (path.isEmpty()) {
+            listOfItems.remove(0);
+        }
+        return listOfItems;
+    }
+
     private String getDirNameByUserId(Integer userId) {
         return "user-" + userId + "-files/";
+    }
+
+    private MinioItemDto convertMinioItemToDto(Item item) {
+        MinioItemDto result = new MinioItemDto();
+        result.setIsDirectory(item.isDir());
+        result.setPath(item.objectName());
+        String path = item.objectName();
+        result.setRelativePath(path.substring(path.indexOf("-files") + 7));
+        return result;
     }
 }
