@@ -23,9 +23,10 @@
             <div th:if="${#authorization.expression('isAuthenticated()')}">
                 <a th:href="@{/}" th:text="${root}"></a>
                 <span th:if="${!breadCrumbs.isEmpty()}">
-                    <span th:each="breadCrumb: ${breadCrumbs}">
+                    <span th:each="breadCrumb, iterStat: ${breadCrumbs}">
                         <span> -> </span>
-                        <a th:href="@{/(path=${#uris.escapePath(breadCrumb.pathForLink)})}" th:text="${breadCrumb.displayName}"></a>
+                        <a th:if="${!iterStat.last}" th:href="@{/(path=${#uris.escapePath(breadCrumb.pathForLink)})}" th:text="${breadCrumb.displayName}"></a>
+                        <span th:if="${iterStat.last}" th:text="${breadCrumb.displayName}"></span>
                     </span>
                 </span>
                 <ul>
