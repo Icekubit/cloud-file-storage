@@ -49,7 +49,12 @@
                     <label for="file">Choose a file:</label>
                     <input type="file" id="file" name="file" />
                     <input type="hidden" name="path" th:value="${path}" />
-                    <br />
+                    <input type="submit" value="Upload" />
+                </form>
+                <form th:action="@{/upload_folder}" th:method="post" enctype="multipart/form-data">
+                    <label for="files">Choose a folder:</label>
+                    <input type="file" id="files" name="files" webkitdirectory multiple/>
+                    <input type="hidden" name="path" th:value="${path}" />
                     <input type="submit" value="Upload" />
                 </form>
             </div>
