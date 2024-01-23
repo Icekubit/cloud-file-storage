@@ -3,7 +3,7 @@
       xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8"/>
-    <title>Spring Security Example</title>
+    <title>Cloud File Storage</title>
 </head>
     <body>
         <div>
@@ -40,6 +40,11 @@
                         </div>
                     </li>
                 </ul>
+                <form th:action="@{/create_folder}" method="post">
+                    <label> Folder name : <input type="text" name="folderName"/></label>
+                    <input type="hidden" name="path" th:value="${path}"/>
+                    <input type="submit" value="Create folder"/>
+                </form>
                 <form th:action="@{/}" th:method="post" enctype="multipart/form-data">
                     <label for="file">Choose a file:</label>
                     <input type="file" id="file" name="file" />

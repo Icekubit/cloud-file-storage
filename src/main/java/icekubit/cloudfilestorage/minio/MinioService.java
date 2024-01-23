@@ -42,11 +42,11 @@ public class MinioService {
     }
 
     @SneakyThrows
-    public void createFolder(String folderName) {
+    public void createFolder(String minioPathToFolder) {
         minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket("user-files")
-                        .object(folderName)
+                        .object(minioPathToFolder)
                         .stream(
                                 new ByteArrayInputStream(new byte[] {}), 0, -1)
                         .build());

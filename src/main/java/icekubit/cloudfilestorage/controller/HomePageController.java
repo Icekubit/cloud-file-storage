@@ -116,5 +116,22 @@ public class HomePageController {
         return "redirect:/?path=" + path;
     }
 
+    @PostMapping("/create_folder")
+    public String createFolder(@RequestParam String folderName,
+                               @RequestParam String path,
+                               HttpSession httpSession) {
+        System.out.println(folderName);
+        System.out.println(path);
+        Integer userId = (Integer) httpSession.getAttribute("userId");
+        String minioPathToFolder = "";
+        if (path.isEmpty()) {
+            minioPathToFolder = "user-" + userId + "-files/" + folderName + "/";
+        } else {
+            minioPathToFolder = "user-" + userId + "-files/" + path + "/" + folderName + "/";
+        }
+        minioService.createFolder(minioPathToFolder);
+        return "redirect:/?path=" + path;
+    }
+
 
 }
