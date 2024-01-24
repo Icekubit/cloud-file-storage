@@ -19,7 +19,7 @@ public class FileOperationsController {
         this.minioService = minioService;
     }
 
-    @PostMapping("/upload_file")
+    @PostMapping("/file/upload")
     public String handleFileUpload(@RequestParam MultipartFile file,
                                    @RequestParam String path,
                                    HttpSession httpSession) {
@@ -35,7 +35,7 @@ public class FileOperationsController {
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }
 
-    @PostMapping("/create_folder")
+    @PostMapping("/folder")
     public String createFolder(@RequestParam String folderName,
                                @RequestParam String path,
                                HttpSession httpSession) {
@@ -51,7 +51,7 @@ public class FileOperationsController {
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }
 
-    @PostMapping("/upload_folder")
+    @PostMapping("/folder/upload")
     public String handleFolderUpload(@RequestParam MultipartFile[] files,
                                      @RequestParam String path,
                                      HttpSession httpSession) {
