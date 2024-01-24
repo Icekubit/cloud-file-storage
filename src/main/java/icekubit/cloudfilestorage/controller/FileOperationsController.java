@@ -18,7 +18,7 @@ public class FileOperationsController {
         this.minioService = minioService;
     }
 
-    @PostMapping("/")
+    @PostMapping("/upload_file")
     public String handleFileUpload(@RequestParam MultipartFile file,
                                    @RequestParam String path,
                                    HttpSession httpSession) {
