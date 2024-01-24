@@ -134,6 +134,43 @@ public class MinioService {
         return listOfItems;
     }
 
+    public void removeObject(String itemForDeleting, Integer userId) {
+        String minioPathToObject = getDirNameByUserId(userId) + itemForDeleting;
+        if (minioPathToObject.endsWith("/")) {
+            var results = minioClient.listObjects(
+                    ListObjectsArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .prefix(minioPathToObject)
+                            .build());
+            List<MinioItemDto> listOfItems = new ArrayList<>();
+            for (Result<Item> result : results) {
+                try {
+                    // skip if resource is source folder to exclude it from listOfItems
+                    if (minioPathToObject.equals(result.get().objectName())) {
+                        continue;
+                    }
+                    listOfItems.add(convertMinioItemToDto(result.get()));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            for (MinioItemDto item: listOfItems) {
+                removeObject(item.getRelativePath(), userId);
+            }
+        }
+
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .object(minioPathToObject)
+                            .build());
+            log.info("The object " + minioPathToObject + " is removed successfully");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private String getDirNameByUserId(Integer userId) {
         return "user-" + userId + "-files/";
     }

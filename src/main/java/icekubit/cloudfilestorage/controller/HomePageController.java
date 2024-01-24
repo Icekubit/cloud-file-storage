@@ -1,15 +1,10 @@
 package icekubit.cloudfilestorage.controller;
 
 import icekubit.cloudfilestorage.dto.BreadCrumbDto;
-import icekubit.cloudfilestorage.dto.MinioItemDto;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
-import io.minio.Result;
-import io.minio.messages.Item;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Controller;
@@ -115,7 +110,8 @@ public class HomePageController {
             minioPathToFile = "user-" + userId + "-files/" + path + "/" + file.getOriginalFilename();
         }
         minioService.uploadMultipartFile(minioPathToFile, file);
-        return "redirect:/?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
+        return "redirect:/" +
+                ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }
 
     @PostMapping("/create_folder")
@@ -130,7 +126,8 @@ public class HomePageController {
             minioPathToFolder = "user-" + userId + "-files/" + path + "/" + folderName + "/";
         }
         minioService.createFolder(minioPathToFolder);
-        return "redirect:/?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
+        return "redirect:/" +
+                ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }
 
     @PostMapping("/upload_folder")
@@ -147,7 +144,18 @@ public class HomePageController {
             }
             minioService.uploadMultipartFile(minioPathToFile, file);
         }
-        return "redirect:/?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8);
+        return "redirect:/" +
+                ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
+    }
+
+    @PostMapping("/delete_item")
+    public String handleItemDeleting(@RequestParam String itemForDeleting,
+                                     @RequestParam String path,
+                                     HttpSession httpSession) {
+        Integer userId = (Integer) httpSession.getAttribute("userId");
+        minioService.removeObject(itemForDeleting, userId);
+        return "redirect:/" +
+                ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }
 
 
