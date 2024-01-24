@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -75,6 +76,17 @@ public class FileOperationsController {
                                      HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
         minioService.removeObject(itemForDeleting, userId);
+        return "redirect:/" +
+                ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
+    }
+
+    @PutMapping("/file")
+    public String renameObject(@RequestParam String relativePathToObject,
+                               @RequestParam String newObjectName,
+                               @RequestParam String path,
+                               HttpSession httpSession) {
+        Integer userId = (Integer) httpSession.getAttribute("userId");
+        minioService.renameObject(relativePathToObject, newObjectName, userId);
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }

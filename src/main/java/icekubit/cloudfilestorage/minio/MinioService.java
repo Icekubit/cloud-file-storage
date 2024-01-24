@@ -7,6 +7,7 @@ import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +16,6 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 @Service
@@ -51,18 +51,6 @@ public class MinioService {
                                 new ByteArrayInputStream(new byte[] {}), 0, -1)
                         .build());
     }
-
-    @SneakyThrows
-    public void uploadFile(String pathToFile, String minioPathToFile) {
-        minioClient.uploadObject(
-                UploadObjectArgs.builder()
-                        .bucket("user-files")
-                        .object(minioPathToFile)
-                        .filename(pathToFile)
-                        .build());
-        log.info(pathToFile + " is successfully uploaded as object 'just_random_name' to bucket 'user-files'.");
-    }
-
 
     public void uploadMultipartFile(String minioPathToFile, MultipartFile file) {
         try {
@@ -134,6 +122,27 @@ public class MinioService {
         return listOfItems;
     }
 
+    public List<MinioItemDto> getListOfItems(String absolutePath) {
+        var results = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(DEFAULT_BUCKET_NAME)
+                        .prefix(absolutePath)
+                        .build());
+        List<MinioItemDto> listOfItems = new ArrayList<>();
+        for (Result<Item> result: results) {
+            try {
+                // skip if resource is source folder to exclude it from listOfItems
+                if (absolutePath.equals(result.get().objectName())) {
+                    continue;
+                }
+                listOfItems.add(convertMinioItemToDto(result.get()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return listOfItems;
+    }
+
     public void removeObject(String itemForDeleting, Integer userId) {
         String minioPathToObject = getDirNameByUserId(userId) + itemForDeleting;
         if (minioPathToObject.endsWith("/")) {
@@ -169,6 +178,88 @@ public class MinioService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void renameObject(String relativePathToObject, String newObjectName, Integer userId) {
+        String newRelativePathToObject = getNewRelativePathToObject(relativePathToObject, newObjectName);
+
+        if (relativePathToObject.endsWith("/")) {
+            String newFolder = getDirNameByUserId(userId) + newRelativePathToObject;
+            String sourceFolder = getDirNameByUserId(userId) + relativePathToObject;
+
+            createFolder(newFolder);
+
+            copyItems(sourceFolder, newFolder);
+
+        } else {
+
+            try {
+                minioClient.copyObject(
+                        CopyObjectArgs.builder()
+                                .bucket(DEFAULT_BUCKET_NAME)
+                                .object(getDirNameByUserId(userId) + newRelativePathToObject)
+                                .source(
+                                        CopySource.builder()
+                                                .bucket(DEFAULT_BUCKET_NAME)
+                                                .object(getDirNameByUserId(userId) + relativePathToObject)
+                                                .build())
+                                .build());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
+        removeObject(relativePathToObject, userId);
+    }
+
+    private void copyItems(String sourceFolder, String newFolder) {
+        var listOfItems = getListOfItems(sourceFolder);
+        for (MinioItemDto item: listOfItems) {
+            if (item.getIsDirectory()) {
+                String pathToNewFolder = newFolder + item.getPath().substring(sourceFolder.length());
+                createFolder(pathToNewFolder);
+                copyItems(item.getPath(), pathToNewFolder);
+            } else {
+                try {
+                    String destinationPath = newFolder + item.getPath().substring(sourceFolder.length());
+                    minioClient.copyObject(
+                            CopyObjectArgs.builder()
+                                    .bucket(DEFAULT_BUCKET_NAME)
+                                    .object(destinationPath)
+                                    .source(
+                                            CopySource.builder()
+                                                    .bucket(DEFAULT_BUCKET_NAME)
+                                                    .object(item.getPath())
+                                                    .build())
+                                    .build());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    @NotNull
+    private String getNewRelativePathToObject(String relativePathToObject, String newObjectName) {
+        String newRelativePathToObject = "";
+        if (relativePathToObject.endsWith("/")) {
+            newRelativePathToObject = relativePathToObject.substring(0, relativePathToObject.length() - 1);
+            if (newRelativePathToObject.contains("/")) {
+                newRelativePathToObject = newRelativePathToObject.substring(0, newRelativePathToObject.lastIndexOf("/") + 1);
+            } else {
+                newRelativePathToObject = "";
+            }
+            newRelativePathToObject = newRelativePathToObject + newObjectName + "/";
+        } else {
+            if (relativePathToObject.contains("/")) {
+                newRelativePathToObject = relativePathToObject.substring(0, relativePathToObject.lastIndexOf("/") + 1);
+            } else {
+                newRelativePathToObject = "";
+            }
+            newRelativePathToObject = newRelativePathToObject + newObjectName;
+        }
+        return newRelativePathToObject;
     }
 
     private String getDirNameByUserId(Integer userId) {
