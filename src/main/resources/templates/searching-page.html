@@ -14,5 +14,23 @@
                 </form>
             </div>
         </div>
+        <div>
+            <form th:action="@{/search/}" th:method="get" style="display: inline;">
+                <label> Enter file or folder name : <input type="text" name="query"/></label>
+                <input type="submit" value="Search"/>
+            </form>
+            <ul>
+                <li th:each="item : ${foundItems}">
+                    <div th:if="${item.getIsDirectory()}">
+                        <a th:href="@{/(path=${#uris.escapePath(item.relativePath)})}"
+                           th:text="${item.getPath()}"></a>
+                    </div>
+                    <div th:if="${!item.getIsDirectory()}">
+                        <span th:text="${item.getPath()}"></span>
+                        <a th:href="@{/(path=${#uris.escapePath(item.getRelativePathToParentFolder())})}">go to parent folder</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
     </body>
 </html>

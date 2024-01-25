@@ -135,7 +135,7 @@ public class MinioService {
         List<MinioItemDto> foundObjects = new ArrayList<>();
         for (MinioItemDto item: allUserItems) {
             String fileName = Paths.get(item.getPath()).getFileName().toString();
-            if (fileName.contains(query)) {
+            if (fileName.toLowerCase().contains(query.toLowerCase())) {
                 foundObjects.add(item);
             }
         }

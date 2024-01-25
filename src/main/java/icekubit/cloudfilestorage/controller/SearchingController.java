@@ -1,5 +1,7 @@
 package icekubit.cloudfilestorage.controller;
 
+import icekubit.cloudfilestorage.dto.FoundItemDto;
+import icekubit.cloudfilestorage.dto.MinioItemDto;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
 import jakarta.servlet.http.HttpSession;
@@ -9,6 +11,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
 
 @Controller
 public class SearchingController {
@@ -32,10 +38,9 @@ public class SearchingController {
             httpSession.setAttribute("userId", userId);
         }
 
-        System.out.println(userId);
-        System.out.println(query);
-        minioService.searchObjects("user-" + userId + "-files/", query)
-                .forEach(item -> System.out.println(item.getPath()));
+        model.addAttribute("foundItems",
+                minioService.searchObjects(getRootFolder(userId), query)
+                        .stream().map(this::convertToFoundItemDto).collect(Collectors.toList()));
 
 
         return "searching-page";
@@ -46,5 +51,23 @@ public class SearchingController {
         User userDetails = (User) authentication.getPrincipal();
         String userName = userDetails.getUsername();
         return userRepository.findByName(userName).get().getId();
+    }
+
+    private String getRootFolder(Integer userId) {
+        return "user-" + userId + "-files/";
+    }
+
+    private FoundItemDto convertToFoundItemDto(MinioItemDto minioItemDto) {
+        FoundItemDto foundItemDto = new FoundItemDto();
+        foundItemDto.setIsDirectory(minioItemDto.getIsDirectory());
+        foundItemDto.setPath(minioItemDto.getPath());
+        foundItemDto.setRelativePath(minioItemDto.getRelativePath());
+
+        String pathToParentFolder = Paths.get(minioItemDto.getPath()).getParent().toString() + "/";
+        String relativePathToParentFolder
+                = pathToParentFolder.substring(pathToParentFolder.indexOf("-files") + 7);
+
+        foundItemDto.setRelativePathToParentFolder(relativePathToParentFolder);
+        return foundItemDto;
     }
 }
