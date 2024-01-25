@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 
 @Controller
 public class FileOperationsController {
@@ -76,6 +77,14 @@ public class FileOperationsController {
                                      HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
         minioService.removeObject(itemForDeleting, userId);
+
+        // check if parent folder for itemForDeletion is empty and create Minio emulation for empty folder
+        String minioPathToObject = "user-" + userId + "-files/" + itemForDeleting;
+        String minioPathToFolder = Paths.get(minioPathToObject).getParent().toString() + "/";
+        if (minioService.getListOfItems(minioPathToFolder).isEmpty()) {
+            minioService.createFolder(minioPathToFolder);
+        }
+
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }
