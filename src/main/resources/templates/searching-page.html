@@ -8,11 +8,9 @@
     <body>
         <div>
             <h1 th:inline="text">Hello <span th:remove="tag" sec:authentication="name">thymeleaf</span>!</h1>
-            <div th:if="${#authorization.expression('isAuthenticated()')}">
-                <form th:action="@{/logout}" method="post">
-                    <input type="submit" value="Log out"/>
-                </form>
-            </div>
+            <form th:action="@{/logout}" method="post">
+                <input type="submit" value="Log out"/>
+            </form>
         </div>
         <div>
             <form th:action="@{/search/}" th:method="get" style="display: inline;">
@@ -21,13 +19,13 @@
             </form>
             <ul>
                 <li th:each="item : ${foundItems}">
-                    <div th:if="${item.getIsDirectory()}">
+                    <div th:if="${item.isDirectory}">
                         <a th:href="@{/(path=${#uris.escapePath(item.relativePath)})}"
-                           th:text="${item.getPath()}"></a>
+                           th:text="${item.path}"></a>
                     </div>
-                    <div th:if="${!item.getIsDirectory()}">
-                        <span th:text="${item.getPath()}"></span>
-                        <a th:href="@{/(path=${#uris.escapePath(item.getRelativePathToParentFolder())})}">go to parent folder</a>
+                    <div th:if="${!item.isDirectory}">
+                        <span th:text="${item.path}"></span>
+                        <a th:href="@{/(path=${#uris.escapePath(item.relativePathToParentFolder)})}">go to parent folder</a>
                     </div>
                 </li>
             </ul>
