@@ -49,12 +49,15 @@ public class HomePageController {
             return "redirect:/?path=" + path.substring(0, path.length() - 1);
         }
 
-        if ((path != null && minioService.doesFolderExist(path, userId))
-        || (authentication != null && authentication.isAuthenticated())) {
+
+        if ((path != null && minioService.doesFolderExist("user-" + userId + "-files/" + path + "/"))
+        && (authentication != null && authentication.isAuthenticated())
+        || (path == null && authentication != null && authentication.isAuthenticated())) {
             if (path == null) {
                 path = "";
             }
-            var listOfItems = minioService.getListOfItems(path, userId);
+            String minioPathToFolder = (path.isEmpty()) ? "user-" + userId + "-files/" : "user-" + userId + "-files/" + path + "/";
+            var listOfItems = minioService.getListOfItems(minioPathToFolder);
             model.addAttribute("path", path);
             model.addAttribute("root", "user-" + userId + "-files");
             model.addAttribute("listOfItems", listOfItems);

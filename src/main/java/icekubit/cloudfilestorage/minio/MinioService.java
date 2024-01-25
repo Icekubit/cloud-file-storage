@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -32,12 +33,12 @@ public class MinioService {
     @SneakyThrows
     private void createDefaultBucket() {
         boolean found =
-                minioClient.bucketExists(BucketExistsArgs.builder().bucket("user-files").build());
+                minioClient.bucketExists(BucketExistsArgs.builder().bucket(DEFAULT_BUCKET_NAME).build());
         if (!found) {
-            minioClient.makeBucket(MakeBucketArgs.builder().bucket("user-files").build());
-            log.info("Bucket 'user-files' was created");
+            minioClient.makeBucket(MakeBucketArgs.builder().bucket(DEFAULT_BUCKET_NAME).build());
+            log.info("Bucket '" + DEFAULT_BUCKET_NAME + "' was created");
         } else {
-            log.info("Can't create bucket 'user-files' because bucket with this name already exists");
+            log.info("Can't create bucket '" + DEFAULT_BUCKET_NAME + "' because bucket with this name already exists");
         }
     }
 
@@ -45,81 +46,39 @@ public class MinioService {
     public void createFolder(String minioPathToFolder) {
         minioClient.putObject(
                 PutObjectArgs.builder()
-                        .bucket("user-files")
+                        .bucket(DEFAULT_BUCKET_NAME)
                         .object(minioPathToFolder)
                         .stream(
                                 new ByteArrayInputStream(new byte[] {}), 0, -1)
                         .build());
+        log.info("The folder '" + minioPathToFolder + "' is created");
     }
 
+    @SneakyThrows
     public void uploadMultipartFile(String minioPathToFile, MultipartFile file) {
-        try {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket("user-files")
-                            .object(minioPathToFile)
-                            .stream(
-                                    file.getInputStream(), -1, 10485760)
-                            .build());
-            log.info("The file " + minioPathToFile + " is successfully added to the bucket " + DEFAULT_BUCKET_NAME);
-        } catch (ErrorResponseException e) {
-            throw new RuntimeException(e);
-        } catch (InsufficientDataException e) {
-            throw new RuntimeException(e);
-        } catch (InternalException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidKeyException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidResponseException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        } catch (ServerException e) {
-            throw new RuntimeException(e);
-        } catch (XmlParserException e) {
-            throw new RuntimeException(e);
-        }
-
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(DEFAULT_BUCKET_NAME)
+                        .object(minioPathToFile)
+                        .stream(
+                                file.getInputStream(), -1, 10485760)
+                        .build());
+        log.info("The file " + minioPathToFile + " is successfully added to the bucket " + DEFAULT_BUCKET_NAME);
     }
 
-    public boolean doesFolderExist(String path, int userId) {
+    @SneakyThrows
+    public boolean doesFolderExist(String minioPathToFile) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(DEFAULT_BUCKET_NAME)
-                        .prefix(getDirNameByUserId(userId) + path)
+                        .prefix(minioPathToFile)
                         .build());
-        if (results.iterator().hasNext()) {
-            try {
-                return results.iterator().next().get().isDir();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        for (Result<Item> result: results) {
+            if (result.get().objectName().startsWith(minioPathToFile)) {
+                    return true;
             }
         }
         return false;
-    }
-
-    public List<MinioItemDto> getListOfItems(String path, int userId) {
-        String prefix = path.isEmpty() ? getDirNameByUserId(userId) : getDirNameByUserId(userId) + path + "/";
-        var results = minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(DEFAULT_BUCKET_NAME)
-                        .prefix(prefix)
-                        .build());
-        List<MinioItemDto> listOfItems = new ArrayList<>();
-        for (Result<Item> result: results) {
-            try {
-                // skip if resource is source folder to exclude it from listOfItems
-                if (prefix.equals(result.get().objectName())) {
-                    continue;
-                }
-                listOfItems.add(convertMinioItemToDto(result.get()));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return listOfItems;
     }
 
     public List<MinioItemDto> getListOfItems(String absolutePath) {
@@ -178,6 +137,12 @@ public class MinioService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+        String minioPathToFolder = Paths.get(minioPathToObject).getParent().toString() + "/";
+        if (getListOfItems(minioPathToFolder).isEmpty()) {
+            createFolder(minioPathToFolder);
+        }
+
     }
 
     public void renameObject(String relativePathToObject, String newObjectName, Integer userId) {
