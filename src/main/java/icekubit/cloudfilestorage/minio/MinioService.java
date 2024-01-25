@@ -130,6 +130,30 @@ public class MinioService {
         removeObject(minioPathToObject);
     }
 
+    public List<MinioItemDto> searchObjects(String minioPathToRootFolder, String query) {
+        List<MinioItemDto> allUserItems = getListOfItemsRecursively(minioPathToRootFolder);
+        List<MinioItemDto> foundObjects = new ArrayList<>();
+        for (MinioItemDto item: allUserItems) {
+            String fileName = Paths.get(item.getPath()).getFileName().toString();
+            if (fileName.contains(query)) {
+                foundObjects.add(item);
+            }
+        }
+        return foundObjects;
+    }
+
+    private List<MinioItemDto> getListOfItemsRecursively(String minioPathToFolder) {
+        List<MinioItemDto> listOfItems = getListOfItems(minioPathToFolder);
+        List<MinioItemDto> result = new ArrayList<>();
+        for (MinioItemDto item: listOfItems) {
+            result.add(item);
+            if (item.getIsDirectory()) {
+                result.addAll(getListOfItemsRecursively(item.getPath()));
+            }
+        }
+        return result;
+    }
+
     private void copyFolder(String sourceFolder, String newFolder) {
         var listOfItems = getListOfItems(sourceFolder);
         for (MinioItemDto item: listOfItems) {

@@ -21,6 +21,10 @@
 
         <div>
             <div th:if="${#authorization.expression('isAuthenticated()')}">
+                <form th:action="@{/search/}" th:method="get" style="display: inline;">
+                    <label> Enter file or folder name : <input type="text" name="query"/></label>
+                    <input type="submit" value="Search"/>
+                </form>
                 <a th:href="@{/}" th:text="${root}"></a>
                 <span th:if="${!breadCrumbs.isEmpty()}">
                     <span th:each="breadCrumb, iterStat: ${breadCrumbs}">
