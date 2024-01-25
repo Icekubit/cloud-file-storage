@@ -22,15 +22,15 @@ public class FileOperationsController {
     }
 
     @PostMapping("/file/upload")
-    public String handleFileUpload(@RequestParam MultipartFile file,
+    public String uploadFile(@RequestParam MultipartFile file,
                                    @RequestParam String path,
                                    HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
         String minioPathToFile = "";
         if (path.isEmpty()) {
-            minioPathToFile = "user-" + userId + "-files/" + file.getOriginalFilename();
+            minioPathToFile = getRootFolder(userId) + file.getOriginalFilename();
         } else {
-            minioPathToFile = "user-" + userId + "-files/" + path + "/" + file.getOriginalFilename();
+            minioPathToFile = getRootFolder(userId) + path + "/" + file.getOriginalFilename();
         }
         minioService.uploadMultipartFile(minioPathToFile, file);
         return "redirect:/" +
@@ -44,9 +44,9 @@ public class FileOperationsController {
         Integer userId = (Integer) httpSession.getAttribute("userId");
         String minioPathToFolder = "";
         if (path.isEmpty()) {
-            minioPathToFolder = "user-" + userId + "-files/" + folderName + "/";
+            minioPathToFolder = getRootFolder(userId) + folderName + "/";
         } else {
-            minioPathToFolder = "user-" + userId + "-files/" + path + "/" + folderName + "/";
+            minioPathToFolder = getRootFolder(userId) + path + "/" + folderName + "/";
         }
         minioService.createFolder(minioPathToFolder);
         return "redirect:/" +
@@ -54,16 +54,16 @@ public class FileOperationsController {
     }
 
     @PostMapping("/folder/upload")
-    public String handleFolderUpload(@RequestParam MultipartFile[] files,
+    public String uploadFolder(@RequestParam MultipartFile[] files,
                                      @RequestParam String path,
                                      HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
         String minioPathToFile = "";
         for (MultipartFile file: files) {
             if (path.isEmpty()) {
-                minioPathToFile = "user-" + userId + "-files/" + file.getOriginalFilename();
+                minioPathToFile = getRootFolder(userId) + file.getOriginalFilename();
             } else {
-                minioPathToFile = "user-" + userId + "-files/" + path + "/" + file.getOriginalFilename();
+                minioPathToFile = getRootFolder(userId) + path + "/" + file.getOriginalFilename();
             }
             minioService.uploadMultipartFile(minioPathToFile, file);
         }
@@ -72,17 +72,17 @@ public class FileOperationsController {
     }
 
     @DeleteMapping("/file")
-    public String handleItemDeleting(@RequestParam String itemForDeleting,
+    public String removeObject(@RequestParam String objectForDeletion,
                                      @RequestParam String path,
                                      HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
-        minioService.removeObject(itemForDeleting, userId);
+        String minioPathToObject = getRootFolder(userId) + objectForDeletion;
+        minioService.removeObject(minioPathToObject);
 
         // check if parent folder for itemForDeletion is empty and create Minio emulation for empty folder
-        String minioPathToObject = "user-" + userId + "-files/" + itemForDeleting;
-        String minioPathToFolder = Paths.get(minioPathToObject).getParent().toString() + "/";
-        if (minioService.getListOfItems(minioPathToFolder).isEmpty()) {
-            minioService.createFolder(minioPathToFolder);
+        String minioPathToParentFolder = Paths.get(minioPathToObject).getParent().toString() + "/";
+        if (minioService.getListOfItems(minioPathToParentFolder).isEmpty()) {
+            minioService.createFolder(minioPathToParentFolder);
         }
 
         return "redirect:/" +
@@ -95,8 +95,13 @@ public class FileOperationsController {
                                @RequestParam String path,
                                HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
-        minioService.renameObject(relativePathToObject, newObjectName, userId);
+        String minioPathToObject = getRootFolder(userId) + relativePathToObject;
+        minioService.renameObject(minioPathToObject, newObjectName);
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
+    }
+
+    private String getRootFolder(Integer userId) {
+        return "user-" + userId + "-files/";
     }
 }

@@ -2,20 +2,15 @@ package icekubit.cloudfilestorage.minio;
 
 import icekubit.cloudfilestorage.dto.MinioItemDto;
 import io.minio.*;
-import io.minio.errors.*;
 import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.nio.file.Paths;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,17 +76,17 @@ public class MinioService {
         return false;
     }
 
-    public List<MinioItemDto> getListOfItems(String absolutePath) {
+    public List<MinioItemDto> getListOfItems(String minioPathToFolder) {
         var results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(DEFAULT_BUCKET_NAME)
-                        .prefix(absolutePath)
+                        .prefix(minioPathToFolder)
                         .build());
         List<MinioItemDto> listOfItems = new ArrayList<>();
         for (Result<Item> result: results) {
             try {
-                // skip if resource is source folder to exclude it from listOfItems
-                if (absolutePath.equals(result.get().objectName())) {
+                // skip if result is source folder to exclude it from listOfItems
+                if (minioPathToFolder.equals(result.get().objectName())) {
                     continue;
                 }
                 listOfItems.add(convertMinioItemToDto(result.get()));
@@ -102,28 +97,11 @@ public class MinioService {
         return listOfItems;
     }
 
-    public void removeObject(String itemForDeleting, Integer userId) {
-        String minioPathToObject = getDirNameByUserId(userId) + itemForDeleting;
+    public void removeObject(String minioPathToObject) {
         if (minioPathToObject.endsWith("/")) {
-            var results = minioClient.listObjects(
-                    ListObjectsArgs.builder()
-                            .bucket(DEFAULT_BUCKET_NAME)
-                            .prefix(minioPathToObject)
-                            .build());
-            List<MinioItemDto> listOfItems = new ArrayList<>();
-            for (Result<Item> result : results) {
-                try {
-                    // skip if resource is source folder to exclude it from listOfItems
-                    if (minioPathToObject.equals(result.get().objectName())) {
-                        continue;
-                    }
-                    listOfItems.add(convertMinioItemToDto(result.get()));
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            List<MinioItemDto> listOfItems = getListOfItems(minioPathToObject);
             for (MinioItemDto item: listOfItems) {
-                removeObject(item.getRelativePath(), userId);
+                removeObject(item.getPath());
             }
         }
 
@@ -140,127 +118,47 @@ public class MinioService {
 
     }
 
-    private void superRealObjectDeletionIDontKnowYetHowToNameThisMethod(String itemForDeleting, Integer userId) {
-        String minioPathToObject = getDirNameByUserId(userId) + itemForDeleting;
+    public void renameObject(String minioPathToObject, String newObjectName) {
         if (minioPathToObject.endsWith("/")) {
-            var results = minioClient.listObjects(
-                    ListObjectsArgs.builder()
-                            .bucket(DEFAULT_BUCKET_NAME)
-                            .prefix(minioPathToObject)
-                            .build());
-            List<MinioItemDto> listOfItems = new ArrayList<>();
-            for (Result<Item> result : results) {
-                try {
-                    // skip if resource is source folder to exclude it from listOfItems
-                    if (minioPathToObject.equals(result.get().objectName())) {
-                        continue;
-                    }
-                    listOfItems.add(convertMinioItemToDto(result.get()));
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            for (MinioItemDto item: listOfItems) {
-                removeObject(item.getRelativePath(), userId);
-            }
-        }
-
-        try {
-            minioClient.removeObject(
-                    RemoveObjectArgs.builder()
-                            .bucket(DEFAULT_BUCKET_NAME)
-                            .object(minioPathToObject)
-                            .build());
-            log.info("The object " + minioPathToObject + " is removed successfully");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void renameObject(String relativePathToObject, String newObjectName, Integer userId) {
-        String newRelativePathToObject = getNewRelativePathToObject(relativePathToObject, newObjectName);
-
-        if (relativePathToObject.endsWith("/")) {
-            String newFolder = getDirNameByUserId(userId) + newRelativePathToObject;
-            String sourceFolder = getDirNameByUserId(userId) + relativePathToObject;
-
+            String newFolder = Paths.get(minioPathToObject).getParent().toString() + "/" + newObjectName + "/";
             createFolder(newFolder);
-
-            copyItems(sourceFolder, newFolder);
-
+            copyFolder(minioPathToObject, newFolder);
         } else {
-
-            try {
-                minioClient.copyObject(
-                        CopyObjectArgs.builder()
-                                .bucket(DEFAULT_BUCKET_NAME)
-                                .object(getDirNameByUserId(userId) + newRelativePathToObject)
-                                .source(
-                                        CopySource.builder()
-                                                .bucket(DEFAULT_BUCKET_NAME)
-                                                .object(getDirNameByUserId(userId) + relativePathToObject)
-                                                .build())
-                                .build());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-
+            String minioPathToRenamedObject = Paths.get(minioPathToObject).getParent().toString() + "/" + newObjectName;
+            copyFile(minioPathToObject, minioPathToRenamedObject);
         }
-
-        removeObject(relativePathToObject, userId);
+        removeObject(minioPathToObject);
     }
 
-    private void copyItems(String sourceFolder, String newFolder) {
+    private void copyFolder(String sourceFolder, String newFolder) {
         var listOfItems = getListOfItems(sourceFolder);
         for (MinioItemDto item: listOfItems) {
             if (item.getIsDirectory()) {
                 String pathToNewFolder = newFolder + item.getPath().substring(sourceFolder.length());
                 createFolder(pathToNewFolder);
-                copyItems(item.getPath(), pathToNewFolder);
+                copyFolder(item.getPath(), pathToNewFolder);
             } else {
-                try {
-                    String destinationPath = newFolder + item.getPath().substring(sourceFolder.length());
-                    minioClient.copyObject(
-                            CopyObjectArgs.builder()
-                                    .bucket(DEFAULT_BUCKET_NAME)
-                                    .object(destinationPath)
-                                    .source(
-                                            CopySource.builder()
-                                                    .bucket(DEFAULT_BUCKET_NAME)
-                                                    .object(item.getPath())
-                                                    .build())
-                                    .build());
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+                String destinationPath = newFolder + item.getPath().substring(sourceFolder.length());
+                copyFile(item.getPath(), destinationPath);
             }
         }
     }
 
-    @NotNull
-    private String getNewRelativePathToObject(String relativePathToObject, String newObjectName) {
-        String newRelativePathToObject = "";
-        if (relativePathToObject.endsWith("/")) {
-            newRelativePathToObject = relativePathToObject.substring(0, relativePathToObject.length() - 1);
-            if (newRelativePathToObject.contains("/")) {
-                newRelativePathToObject = newRelativePathToObject.substring(0, newRelativePathToObject.lastIndexOf("/") + 1);
-            } else {
-                newRelativePathToObject = "";
-            }
-            newRelativePathToObject = newRelativePathToObject + newObjectName + "/";
-        } else {
-            if (relativePathToObject.contains("/")) {
-                newRelativePathToObject = relativePathToObject.substring(0, relativePathToObject.lastIndexOf("/") + 1);
-            } else {
-                newRelativePathToObject = "";
-            }
-            newRelativePathToObject = newRelativePathToObject + newObjectName;
+    private void copyFile(String sourceFile, String newFile) {
+        try {
+            minioClient.copyObject(
+                    CopyObjectArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .object(newFile)
+                            .source(
+                                    CopySource.builder()
+                                            .bucket(DEFAULT_BUCKET_NAME)
+                                            .object(sourceFile)
+                                            .build())
+                            .build());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return newRelativePathToObject;
-    }
-
-    private String getDirNameByUserId(Integer userId) {
-        return "user-" + userId + "-files/";
     }
 
     private MinioItemDto convertMinioItemToDto(Item item) {
