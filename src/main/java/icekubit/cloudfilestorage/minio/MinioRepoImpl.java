@@ -1,6 +1,5 @@
 package icekubit.cloudfilestorage.minio;
 
-import icekubit.cloudfilestorage.dto.MinioItemDto;
 import io.minio.*;
 import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;

@@ -21,10 +21,10 @@
                 <li th:each="item : ${foundItems}">
                     <div th:if="${item.isDirectory}">
                         <a th:href="@{/(path=${#uris.escapePath(item.relativePath)})}"
-                           th:text="${item.path}"></a>
+                           th:text="${'/' + item.relativePath}"></a>
                     </div>
                     <div th:if="${!item.isDirectory}">
-                        <span th:text="${item.path}"></span>
+                        <span th:text="${'/' + item.relativePath}"></span>
                         <a th:href="@{/(path=${#uris.escapePath(item.relativePathToParentFolder)})}">go to parent folder</a>
                     </div>
                 </li>

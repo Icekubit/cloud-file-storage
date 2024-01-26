@@ -1,9 +1,8 @@
 package icekubit.cloudfilestorage.controller;
 
-import icekubit.cloudfilestorage.dto.FoundItemDto;
+import icekubit.cloudfilestorage.mapper.MinioMapper;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
-import io.minio.messages.Item;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
@@ -12,17 +11,18 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 @Controller
 public class SearchingController {
     private final MinioService minioService;
     private final UserRepository userRepository;
+    private final MinioMapper minioMapper;
 
-    public SearchingController(MinioService minioService, UserRepository userRepository) {
+    public SearchingController(MinioService minioService, UserRepository userRepository, MinioMapper minioMapper) {
         this.minioService = minioService;
         this.userRepository = userRepository;
+        this.minioMapper = minioMapper;
     }
 
     @GetMapping("/search/")
@@ -39,7 +39,9 @@ public class SearchingController {
 
         model.addAttribute("foundItems",
                 minioService.searchObjects(getRootFolder(userId), query)
-                        .stream().map(this::convertToFoundItemDto).collect(Collectors.toList()));
+                        .stream()
+                        .map(minioMapper::convertItemDoDto)
+                        .collect(Collectors.toList()));
 
 
         return "searching-page";
@@ -54,20 +56,5 @@ public class SearchingController {
 
     private String getRootFolder(Integer userId) {
         return "user-" + userId + "-files/";
-    }
-
-    private FoundItemDto convertToFoundItemDto(Item item) {
-        FoundItemDto foundItemDto = new FoundItemDto();
-        foundItemDto.setIsDirectory(item.isDir());
-        String path = item.objectName();
-        foundItemDto.setPath(path);
-        foundItemDto.setRelativePath(path.substring(path.indexOf("-files") + 7));
-
-        String pathToParentFolder = Paths.get(path).getParent().toString() + "/";
-        String relativePathToParentFolder
-                = pathToParentFolder.substring(pathToParentFolder.indexOf("-files") + 7);
-
-        foundItemDto.setRelativePathToParentFolder(relativePathToParentFolder);
-        return foundItemDto;
     }
 }

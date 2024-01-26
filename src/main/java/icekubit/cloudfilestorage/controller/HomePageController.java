@@ -1,10 +1,9 @@
 package icekubit.cloudfilestorage.controller;
 
 import icekubit.cloudfilestorage.dto.BreadCrumbDto;
-import icekubit.cloudfilestorage.dto.MinioItemDto;
+import icekubit.cloudfilestorage.mapper.MinioMapper;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
-import io.minio.messages.Item;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -18,15 +17,18 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class HomePageController {
     private final MinioService minioService;
     private final UserRepository userRepository;
+    private final MinioMapper minioMapper;
 
-    public HomePageController(MinioService minioService, UserRepository userRepository) {
+    public HomePageController(MinioService minioService, UserRepository userRepository, MinioMapper minioMapper) {
         this.minioService = minioService;
         this.userRepository = userRepository;
+        this.minioMapper = minioMapper;
     }
 
     @GetMapping("/")
@@ -60,7 +62,9 @@ public class HomePageController {
             }
             String minioPathToFolder = (path.isEmpty()) ? "user-" + userId + "-files/" : "user-" + userId + "-files/" + path + "/";
             var listOfItems = minioService.getListOfItems(minioPathToFolder)
-                    .stream().map(this::convertMinioItemToDto);
+                    .stream()
+                    .map(minioMapper::convertItemDoDto)
+                    .collect(Collectors.toList());
             model.addAttribute("path", path);
             model.addAttribute("listOfItems", listOfItems);
             model.addAttribute("breadCrumbs", makeBreadCrumbsFromPath(path));
@@ -95,14 +99,5 @@ public class HomePageController {
         }
 
         return breadCrumbs;
-    }
-
-    private MinioItemDto convertMinioItemToDto(Item item) {
-        MinioItemDto result = new MinioItemDto();
-        result.setIsDirectory(item.isDir());
-        result.setPath(item.objectName());
-        String path = item.objectName();
-        result.setRelativePath(path.substring(path.indexOf("-files") + 7));
-        return result;
     }
 }
