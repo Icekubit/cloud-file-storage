@@ -38,7 +38,7 @@ public class SearchingController {
         }
 
         model.addAttribute("foundItems",
-                minioService.searchObjects(getRootFolder(userId), query)
+                minioService.searchObjects(userId, query)
                         .stream()
                         .map(minioMapper::convertItemDoDto)
                         .collect(Collectors.toList()));
@@ -47,14 +47,9 @@ public class SearchingController {
         return "searching-page";
     }
 
-
     private int getUserId(Authentication authentication) {
         User userDetails = (User) authentication.getPrincipal();
         String userName = userDetails.getUsername();
         return userRepository.findByName(userName).get().getId();
-    }
-
-    private String getRootFolder(Integer userId) {
-        return "user-" + userId + "-files/";
     }
 }

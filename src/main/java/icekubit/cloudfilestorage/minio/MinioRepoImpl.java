@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,6 +108,19 @@ public class MinioRepoImpl implements MinioRepo {
                         .object(path)
                         .build());
         log.info("The object " + path + " is removed successfully");
+    }
+
+    @Override
+    public void renameObject(String path, String newObjectName) {
+        if (path.endsWith("/")) {
+            String newFolder = Paths.get(path).getParent().toString() + "/" + newObjectName + "/";
+            createFolder(newFolder);
+            copyFolder(path, newFolder);
+        } else {
+            String minioPathToRenamedObject = Paths.get(path).getParent().toString() + "/" + newObjectName;
+            copyFile(path, minioPathToRenamedObject);
+        }
+        removeObject(path);
     }
 
     @Override

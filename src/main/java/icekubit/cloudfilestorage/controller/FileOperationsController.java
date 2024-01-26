@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 
 @Controller
 public class FileOperationsController {
@@ -26,13 +25,7 @@ public class FileOperationsController {
                                    @RequestParam String path,
                                    HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
-        String minioPathToFile = "";
-        if (path.isEmpty()) {
-            minioPathToFile = getRootFolder(userId) + file.getOriginalFilename();
-        } else {
-            minioPathToFile = getRootFolder(userId) + path + "/" + file.getOriginalFilename();
-        }
-        minioService.uploadMultipartFile(minioPathToFile, file);
+        minioService.uploadMultipartFile(userId, path, file);
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }
@@ -42,13 +35,7 @@ public class FileOperationsController {
                                @RequestParam String path,
                                HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
-        String minioPathToFolder = "";
-        if (path.isEmpty()) {
-            minioPathToFolder = getRootFolder(userId) + folderName + "/";
-        } else {
-            minioPathToFolder = getRootFolder(userId) + path + "/" + folderName + "/";
-        }
-        minioService.createFolder(minioPathToFolder);
+        minioService.createFolder(userId, path, folderName);
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }
@@ -58,14 +45,8 @@ public class FileOperationsController {
                                      @RequestParam String path,
                                      HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
-        String minioPathToFile = "";
         for (MultipartFile file: files) {
-            if (path.isEmpty()) {
-                minioPathToFile = getRootFolder(userId) + file.getOriginalFilename();
-            } else {
-                minioPathToFile = getRootFolder(userId) + path + "/" + file.getOriginalFilename();
-            }
-            minioService.uploadMultipartFile(minioPathToFile, file);
+            minioService.uploadMultipartFile(userId, path, file);
         }
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
@@ -76,14 +57,7 @@ public class FileOperationsController {
                                      @RequestParam String path,
                                      HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
-        String minioPathToObject = getRootFolder(userId) + objectForDeletion;
-        minioService.removeObject(minioPathToObject);
-
-        // check if parent folder for itemForDeletion is empty and create Minio emulation for empty folder
-        String minioPathToParentFolder = Paths.get(minioPathToObject).getParent().toString() + "/";
-        if (minioService.getListOfItems(minioPathToParentFolder).isEmpty()) {
-            minioService.createFolder(minioPathToParentFolder);
-        }
+        minioService.removeObject(userId, objectForDeletion);
 
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
@@ -95,13 +69,8 @@ public class FileOperationsController {
                                @RequestParam String path,
                                HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
-        String minioPathToObject = getRootFolder(userId) + relativePathToObject;
-        minioService.renameObject(minioPathToObject, newObjectName);
+        minioService.renameObject(userId, relativePathToObject, newObjectName);
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
-    }
-
-    private String getRootFolder(Integer userId) {
-        return "user-" + userId + "-files/";
     }
 }

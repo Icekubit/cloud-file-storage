@@ -19,43 +19,53 @@ public class MinioService {
 
 
     @SneakyThrows
-    public void createFolder(String minioPathToFolder) {
+    public void createRootFolder(Integer userId) {
+        String minioPathToFolder = getMinioPathToObject(userId, "") + "/";
+        minioRepo.createFolder(minioPathToFolder);
+    }
+    @SneakyThrows
+    public void createFolder(Integer userId, String path, String newFolderName) {
+        String minioPathToFolder = getMinioPathToObject(userId, path) + "/" + newFolderName + "/";
         minioRepo.createFolder(minioPathToFolder);
     }
 
     @SneakyThrows
-    public void uploadMultipartFile(String minioPathToFile, MultipartFile file) {
+    public void uploadMultipartFile(Integer userId, String path, MultipartFile file) {
+        String minioPathToFile = getMinioPathToObject(userId, path) + "/" + file.getOriginalFilename();
         minioRepo.uploadFile(file, minioPathToFile);
     }
 
     @SneakyThrows
-    public boolean doesFolderExist(String minioPathToFile) {
-        return minioRepo.doesFolderExist(minioPathToFile);
+    public boolean doesFolderExist(Integer userId, String path) {
+        String minioPathToFolder = getMinioPathToObject(userId, path) + "/";
+        return minioRepo.doesFolderExist(minioPathToFolder);
     }
 
-    public List<Item> getListOfItems(String minioPathToFolder) {
+    public List<Item> getListOfItems(Integer userId, String path) {
+        String minioPathToFolder = getMinioPathToObject(userId, path) + "/";
         return minioRepo.getListOfItems(minioPathToFolder);
     }
 
-    public void removeObject(String minioPathToObject) {
+    public void removeObject(Integer userId, String path) {
+        String minioPathToObject = getMinioPathToObject(userId, path);
         minioRepo.removeObject(minioPathToObject);
 
-    }
-
-    public void renameObject(String minioPathToObject, String newObjectName) {
-        if (minioPathToObject.endsWith("/")) {
-            String newFolder = Paths.get(minioPathToObject).getParent().toString() + "/" + newObjectName + "/";
-            createFolder(newFolder);
-            minioRepo.copyFolder(minioPathToObject, newFolder);
-        } else {
-            String minioPathToRenamedObject = Paths.get(minioPathToObject).getParent().toString() + "/" + newObjectName;
-            minioRepo.copyFile(minioPathToObject, minioPathToRenamedObject);
+        // check if parent folder for itemForDeletion is empty and create Minio emulation for empty folder
+        String minioPathToParentFolder = Paths.get(minioPathToObject).getParent().toString() + "/";
+        if (minioRepo.getListOfItems(minioPathToParentFolder).isEmpty()) {
+            minioRepo.createFolder(minioPathToParentFolder);
         }
-        minioRepo.removeObject(minioPathToObject);
+
     }
 
-    public List<Item> searchObjects(String minioPathToRootFolder, String query) {
+    public void renameObject(Integer userId, String path, String newObjectName) {
+        String minioPathToObject = getMinioPathToObject(userId, path);
+        minioRepo.renameObject(minioPathToObject, newObjectName);
+    }
+
+    public List<Item> searchObjects(Integer userId, String query) {
         List<Item> foundObjects = new ArrayList<>();
+        String minioPathToRootFolder = getMinioPathToObject(userId, "") + "/";
         for (Item item: minioRepo.getListOfItemsRecursively(minioPathToRootFolder)) {
             String fileName = Paths.get(item.objectName()).getFileName().toString();
             if (fileName.toLowerCase().contains(query.toLowerCase())) {
@@ -63,5 +73,9 @@ public class MinioService {
             }
         }
         return foundObjects;
+    }
+
+    private String getMinioPathToObject(Integer userId, String path) {
+        return "user-" + userId + "-files" + (path.isEmpty() ? "" : ("/" + path));
     }
 }

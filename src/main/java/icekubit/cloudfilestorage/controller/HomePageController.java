@@ -25,7 +25,9 @@ public class HomePageController {
     private final UserRepository userRepository;
     private final MinioMapper minioMapper;
 
-    public HomePageController(MinioService minioService, UserRepository userRepository, MinioMapper minioMapper) {
+    public HomePageController(MinioService minioService,
+                              UserRepository userRepository,
+                              MinioMapper minioMapper) {
         this.minioService = minioService;
         this.userRepository = userRepository;
         this.minioMapper = minioMapper;
@@ -54,14 +56,14 @@ public class HomePageController {
         }
 
 
-        if ((path != null && minioService.doesFolderExist("user-" + userId + "-files/" + path + "/"))
+//        if ((path != null && minioService.doesFolderExist("user-" + userId + "-files/" + path + "/"))
+        if ((path != null && minioService.doesFolderExist(userId, path))
         && (authentication != null && authentication.isAuthenticated())
         || (path == null && authentication != null && authentication.isAuthenticated())) {
             if (path == null) {
                 path = "";
             }
-            String minioPathToFolder = (path.isEmpty()) ? "user-" + userId + "-files/" : "user-" + userId + "-files/" + path + "/";
-            var listOfItems = minioService.getListOfItems(minioPathToFolder)
+            var listOfItems = minioService.getListOfItems(userId, path)
                     .stream()
                     .map(minioMapper::convertItemDoDto)
                     .collect(Collectors.toList());
