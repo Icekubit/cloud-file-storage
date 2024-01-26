@@ -1,9 +1,9 @@
 package icekubit.cloudfilestorage.controller;
 
 import icekubit.cloudfilestorage.dto.FoundItemDto;
-import icekubit.cloudfilestorage.dto.MinioItemDto;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
+import io.minio.messages.Item;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
@@ -12,7 +12,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
@@ -57,13 +56,14 @@ public class SearchingController {
         return "user-" + userId + "-files/";
     }
 
-    private FoundItemDto convertToFoundItemDto(MinioItemDto minioItemDto) {
+    private FoundItemDto convertToFoundItemDto(Item item) {
         FoundItemDto foundItemDto = new FoundItemDto();
-        foundItemDto.setIsDirectory(minioItemDto.getIsDirectory());
-        foundItemDto.setPath(minioItemDto.getPath());
-        foundItemDto.setRelativePath(minioItemDto.getRelativePath());
+        foundItemDto.setIsDirectory(item.isDir());
+        String path = item.objectName();
+        foundItemDto.setPath(path);
+        foundItemDto.setRelativePath(path.substring(path.indexOf("-files") + 7));
 
-        String pathToParentFolder = Paths.get(minioItemDto.getPath()).getParent().toString() + "/";
+        String pathToParentFolder = Paths.get(path).getParent().toString() + "/";
         String relativePathToParentFolder
                 = pathToParentFolder.substring(pathToParentFolder.indexOf("-files") + 7);
 

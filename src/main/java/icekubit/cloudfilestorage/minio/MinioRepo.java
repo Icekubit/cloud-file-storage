@@ -1,6 +1,5 @@
 package icekubit.cloudfilestorage.minio;
 
-import io.minio.Result;
 import io.minio.messages.Item;
 import org.springframework.web.multipart.MultipartFile;
 

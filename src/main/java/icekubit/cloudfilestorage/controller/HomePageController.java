@@ -1,8 +1,10 @@
 package icekubit.cloudfilestorage.controller;
 
 import icekubit.cloudfilestorage.dto.BreadCrumbDto;
+import icekubit.cloudfilestorage.dto.MinioItemDto;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
+import io.minio.messages.Item;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -57,7 +59,8 @@ public class HomePageController {
                 path = "";
             }
             String minioPathToFolder = (path.isEmpty()) ? "user-" + userId + "-files/" : "user-" + userId + "-files/" + path + "/";
-            var listOfItems = minioService.getListOfItems(minioPathToFolder);
+            var listOfItems = minioService.getListOfItems(minioPathToFolder)
+                    .stream().map(this::convertMinioItemToDto);
             model.addAttribute("path", path);
             model.addAttribute("listOfItems", listOfItems);
             model.addAttribute("breadCrumbs", makeBreadCrumbsFromPath(path));
@@ -92,5 +95,14 @@ public class HomePageController {
         }
 
         return breadCrumbs;
+    }
+
+    private MinioItemDto convertMinioItemToDto(Item item) {
+        MinioItemDto result = new MinioItemDto();
+        result.setIsDirectory(item.isDir());
+        result.setPath(item.objectName());
+        String path = item.objectName();
+        result.setRelativePath(path.substring(path.indexOf("-files") + 7));
+        return result;
     }
 }

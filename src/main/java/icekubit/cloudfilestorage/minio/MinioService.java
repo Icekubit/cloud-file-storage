@@ -1,6 +1,5 @@
 package icekubit.cloudfilestorage.minio;
 
-import icekubit.cloudfilestorage.dto.MinioItemDto;
 import io.minio.messages.Item;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
@@ -34,13 +33,8 @@ public class MinioService {
         return minioRepo.doesFolderExist(minioPathToFile);
     }
 
-    public List<MinioItemDto> getListOfItems(String minioPathToFolder) {
-        List<MinioItemDto> listOfItems = new ArrayList<>();
-        for (Item item: minioRepo.getListOfItems(minioPathToFolder)) {
-            listOfItems.add(convertMinioItemToDto(item));
-        }
-
-        return listOfItems;
+    public List<Item> getListOfItems(String minioPathToFolder) {
+        return minioRepo.getListOfItems(minioPathToFolder);
     }
 
     public void removeObject(String minioPathToObject) {
@@ -60,28 +54,14 @@ public class MinioService {
         minioRepo.removeObject(minioPathToObject);
     }
 
-    public List<MinioItemDto> searchObjects(String minioPathToRootFolder, String query) {
-        List<MinioItemDto> allUserItems = new ArrayList<>();
+    public List<Item> searchObjects(String minioPathToRootFolder, String query) {
+        List<Item> foundObjects = new ArrayList<>();
         for (Item item: minioRepo.getListOfItemsRecursively(minioPathToRootFolder)) {
-            allUserItems.add(convertMinioItemToDto(item));
-        }
-
-        List<MinioItemDto> foundObjects = new ArrayList<>();
-        for (MinioItemDto item: allUserItems) {
-            String fileName = Paths.get(item.getPath()).getFileName().toString();
+            String fileName = Paths.get(item.objectName()).getFileName().toString();
             if (fileName.toLowerCase().contains(query.toLowerCase())) {
                 foundObjects.add(item);
             }
         }
         return foundObjects;
-    }
-
-    private MinioItemDto convertMinioItemToDto(Item item) {
-        MinioItemDto result = new MinioItemDto();
-        result.setIsDirectory(item.isDir());
-        result.setPath(item.objectName());
-        String path = item.objectName();
-        result.setRelativePath(path.substring(path.indexOf("-files") + 7));
-        return result;
     }
 }
