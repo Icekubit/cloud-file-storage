@@ -59,7 +59,6 @@ public class HomePageController {
             String minioPathToFolder = (path.isEmpty()) ? "user-" + userId + "-files/" : "user-" + userId + "-files/" + path + "/";
             var listOfItems = minioService.getListOfItems(minioPathToFolder);
             model.addAttribute("path", path);
-            model.addAttribute("root", "user-" + userId + "-files");
             model.addAttribute("listOfItems", listOfItems);
             model.addAttribute("breadCrumbs", makeBreadCrumbsFromPath(path));
         } else if (path != null) {
