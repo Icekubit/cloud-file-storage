@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,13 +93,14 @@ public class HomePageController {
         }
 
         List<BreadCrumbDto> breadCrumbs = new ArrayList<>();
-        String[] breadCrumbsNames = path.split("/");
-        String pathForLink = "";
-        for (String breadCrumbName: breadCrumbsNames) {
+        Iterator<Path> iterator = Paths.get(path).iterator();
+        Path pathForLink = Paths.get("");
+        while (iterator.hasNext()) {
+            Path currentObject = iterator.next();
+            pathForLink = pathForLink.resolve(currentObject);
             BreadCrumbDto breadCrumbDto = new BreadCrumbDto();
-            breadCrumbDto.setDisplayName(breadCrumbName);
-            pathForLink = pathForLink + breadCrumbName + "/";
-            breadCrumbDto.setPathForLink(pathForLink);
+            breadCrumbDto.setDisplayName(currentObject.toString());
+            breadCrumbDto.setPathForLink(pathForLink + "/");
             breadCrumbs.add(breadCrumbDto);
         }
 
