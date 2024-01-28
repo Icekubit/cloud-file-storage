@@ -1,11 +1,90 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Spring Security Example</title>
+    <meta charset="UTF-8"/>
+    <title>Cloud File Storage</title>
 </head>
-<body>
-<h1>Welcome!</h1>
+    <body>
+        <div>
+            <h1 th:inline="text">Hello <span th:remove="tag" sec:authentication="name">thymeleaf</span>!</h1>
+            <div th:if="${!#authorization.expression('isAuthenticated()')}">
+                <a th:href="@{/login}">Sign in</a>
+                <a th:href="@{/registration}">Sign up</a>
+            </div>
+            <div th:if="${#authorization.expression('isAuthenticated()')}">
+                <form th:action="@{/logout}" method="post">
+                    <input type="submit" value="Log out"/>
+                </form>
+            </div>
+        </div>
 
-<p>Click <a th:href="@{/hello}">here</a> to see a greeting.</p>
-</body>
+        <div>
+            <div th:if="${#authorization.expression('isAuthenticated()')}">
+                <form th:action="@{/search/}" th:method="get" style="display: inline;">
+                    <label> Enter file or folder name : <input type="text" name="query"/></label>
+                    <input type="submit" value="Search"/>
+                </form>
+                <a th:href="@{/}">My disk</a>
+                <span th:if="${!breadCrumbs.isEmpty()}">
+                    <span th:each="breadCrumb, iterStat: ${breadCrumbs}">
+                        <span> -> </span>
+                        <a th:if="${!iterStat.last}" th:href="@{/(path=${#uris.escapePath(breadCrumb.pathForLink)})}" th:text="${breadCrumb.displayName}"></a>
+                        <span th:if="${iterStat.last}" th:text="${breadCrumb.displayName}"></span>
+                    </span>
+                </span>
+                <ul>
+                    <li th:each="element : ${listOfItems}">
+                        <div th:if="${element.isDirectory}">
+                            <a th:href="@{/(path=${#uris.escapePath(element.relativePath)})}"
+                               th:text="'/' + ${element.relativePath}"></a>
+                            <form th:action="@{/file}" th:method="delete" style="display: inline;">
+                                <input type="hidden" name="objectForDeletion" th:value="${element.relativePath}"/>
+                                <input type="hidden" name="path" th:value="${path}"/>
+                                <input type="submit" value="Delete"/>
+                            </form>
+                            <form th:action="@{/file}" th:method="put" style="display: inline;">
+                                <label> New file name : <input type="text" name="newObjectName"/></label>
+                                <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>
+                                <input type="hidden" name="path" th:value="${path}"/>
+                                <input type="submit" value="Rename"/>
+                            </form>
+                        </div>
+                        <div th:if="${!element.isDirectory}">
+                            <span th:text="'/' + ${element.relativePath}"></span>
+                            <form th:action="@{/file}" th:method="delete" style="display: inline;">
+                                <input type="hidden" name="objectForDeletion" th:value="${element.relativePath}"/>
+                                <input type="hidden" name="path" th:value="${path}"/>
+                                <input type="submit" value="Delete"/>
+                            </form>
+                            <form th:action="@{/file}" th:method="put" style="display: inline;">
+                                <label> New file name : <input type="text" name="newObjectName"/></label>
+                                <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>
+                                <input type="hidden" name="path" th:value="${path}"/>
+                                <input type="submit" value="Rename"/>
+                            </form>
+                        </div>
+                    </li>
+                </ul>
+                <form th:action="@{/folder}" method="post">
+                    <label> Folder name : <input type="text" name="folderName"/></label>
+                    <input type="hidden" name="path" th:value="${path}"/>
+                    <input type="submit" value="Create folder"/>
+                </form>
+                <form th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
+                    <label for="file">Choose a file:</label>
+                    <input type="file" id="file" name="file" />
+                    <input type="hidden" name="path" th:value="${path}" />
+                    <input type="submit" value="Upload" />
+                </form>
+                <form th:action="@{/folder/upload}" th:method="post" enctype="multipart/form-data">
+                    <label for="files">Choose a folder:</label>
+                    <input type="file" id="files" name="files" webkitdirectory multiple/>
+                    <input type="hidden" name="path" th:value="${path}" />
+                    <input type="submit" value="Upload" />
+                </form>
+            </div>
+        </div>
+
+    </body>
 </html>

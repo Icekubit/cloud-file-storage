@@ -64,7 +64,7 @@ public class RegistrationController {
         }
 
         loginAfterRegistration(request, response, userDto);
-        return "redirect:/hello";
+        return "redirect:/";
     }
 
     private void loginAfterRegistration(HttpServletRequest request, HttpServletResponse response, UserDto userDto) {

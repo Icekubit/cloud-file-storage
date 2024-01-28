@@ -8,3 +8,14 @@ services:
       POSTGRES_DB: my_db
     ports:
       - "5432:5432"
+  minio:
+    image: quay.io/minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command:
+      server /data
+    environment:
+      - MINIO_CONSOLE_ADDRESS=:9001
+      - MINIO_ACCESS_KEY=username
+      - MINIO_SECRET_KEY=password

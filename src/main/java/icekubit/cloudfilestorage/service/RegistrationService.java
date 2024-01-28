@@ -2,6 +2,7 @@ package icekubit.cloudfilestorage.service;
 
 import icekubit.cloudfilestorage.exception.UniqueEmailConstraintException;
 import icekubit.cloudfilestorage.exception.UniqueNameConstraintException;
+import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.model.dto.UserDto;
 import icekubit.cloudfilestorage.model.entity.User;
 import icekubit.cloudfilestorage.repo.UserRepository;
@@ -19,12 +20,17 @@ public class RegistrationService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final MinioService minioService;
+
     private String nameConstraint;
     private String emailConstraint;
 
-    public RegistrationService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public RegistrationService(UserRepository userRepository,
+                               PasswordEncoder passwordEncoder,
+                               MinioService minioService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.minioService = minioService;
     }
 
     @PostConstruct
@@ -49,5 +55,6 @@ public class RegistrationService {
             }
         }
         log.info("User was added to database: " + userDto);
+        minioService.createRootFolder(newUser.getId());
     }
 }
