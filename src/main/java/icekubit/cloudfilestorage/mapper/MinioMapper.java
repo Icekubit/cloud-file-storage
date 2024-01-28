@@ -4,6 +4,7 @@ import icekubit.cloudfilestorage.dto.MinioItemDto;
 import io.minio.messages.Item;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Component
@@ -11,14 +12,25 @@ public class MinioMapper {
     public MinioItemDto convertItemDoDto(Item item) {
         MinioItemDto minioItemDto = new MinioItemDto();
         minioItemDto.setIsDirectory(item.isDir());
-        String path = item.objectName();
-        minioItemDto.setRelativePath(path.substring(path.indexOf("-files") + 7));
 
-        String pathToParentFolder = Paths.get(path).getParent().toString() + "/";
-        String relativePathToParentFolder
-                = pathToParentFolder.substring(pathToParentFolder.indexOf("-files") + 7);
+        Path path = Paths.get(item.objectName());
+        Path pathToRootFolder = path.getName(0);
+        Path relativePathToObject = pathToRootFolder.relativize(path);
 
-        minioItemDto.setRelativePathToParentFolder(relativePathToParentFolder);
+        if (item.isDir()) {
+            minioItemDto.setRelativePath(relativePathToObject + "/");
+        } else {
+            minioItemDto.setRelativePath(relativePathToObject.toString());
+        }
+
+        Path relativePathToParentFolder = relativePathToObject.getParent();
+
+        if (relativePathToParentFolder == null) {
+            minioItemDto.setRelativePathToParentFolder("/");
+        } else {
+            minioItemDto.setRelativePathToParentFolder(relativePathToParentFolder.toString());
+        }
+
         return minioItemDto;
     }
 }
