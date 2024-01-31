@@ -1,0 +1,161 @@
+package icekubit.cloudfilestorage.integration;
+
+import icekubit.cloudfilestorage.minio.MinioRepo;
+import icekubit.cloudfilestorage.minio.MinioService;
+import icekubit.cloudfilestorage.model.dto.UserDto;
+import icekubit.cloudfilestorage.repo.UserRepository;
+import icekubit.cloudfilestorage.service.RegistrationService;
+import io.minio.GetObjectArgs;
+import io.minio.MinioClient;
+import io.minio.messages.Item;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@Testcontainers
+@SpringBootTest
+@TestPropertySource("classpath:test-application.properties")
+@Transactional
+public class MinioServiceTest {
+
+
+    @Container
+    @ServiceConnection
+    private static final PostgreSQLContainer<?> postgresContainer
+            = new PostgreSQLContainer<>("postgres:latest");
+
+
+    @Container
+    private static final GenericContainer<?> minioContainer
+            = new GenericContainer<>("quay.io/minio/minio")
+            .withExposedPorts(9000)
+            .withCommand("server", "/data")
+            .withEnv("MINIO_ACCESS_KEY", "username")
+            .withEnv("MINIO_SECRET_KEY", "password");
+
+    @DynamicPropertySource
+    static void minIOProperties(DynamicPropertyRegistry registry) {
+        String minioHost = minioContainer.getHost();
+        Integer minioPort = minioContainer.getMappedPort(9000);
+        String minioEndpoint = "http://" + minioHost + ":" + minioPort;
+        registry.add("minio.endpoint", () -> minioEndpoint);
+    }
+
+    @Autowired
+    protected RegistrationService registrationService;
+
+    @Autowired
+    protected UserRepository userRepository;
+
+    @Autowired
+    protected MinioService minioService;
+
+    @Autowired
+    protected MinioRepo minioRepo;
+
+    @Autowired
+    protected MinioClient minioClient;
+    private final UserDto testUser = UserDto.builder()
+            .name("test-user")
+            .password("test-password")
+            .email("test@gmail.com")
+            .build();
+
+    @Test
+    void userRootFolderIsCreatedAfterUserRegistration() {
+        registrationService.registerNewUser(testUser);
+        Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
+        String pathToUserRootFolder = "user-" + testUserId + "-files/";
+        assertThat(minioRepo.doesFolderExist(pathToUserRootFolder)).isTrue();
+
+        System.out.println("goodbye" + userRepository.findAll());
+    }
+
+    @Test
+    @SneakyThrows
+    void whenUploadFile_fileIsInStorage() {
+        registrationService.registerNewUser(testUser);
+        Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
+        Path testFilePath = Paths.get("src/test/resources/files/test-image.jpg");
+
+        byte[] originalFileContent = Files.readAllBytes(testFilePath);
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "file",
+                testFilePath.getFileName().toString(),
+                "multipart/form-data",
+                originalFileContent
+        );
+
+        minioService.uploadMultipartFile(testUserId, "", multipartFile);
+
+        List<String> listOfObjectNames = new ArrayList<>();
+        for (Item item: minioService.getListOfItems(testUserId, "")) {
+            listOfObjectNames.add(item.objectName());
+        }
+        String expectedFileName = "user-" + testUserId + "-files/" + testFilePath.getFileName();
+
+        assertThat(listOfObjectNames).contains(expectedFileName);
+
+
+        byte[] storageFileContent = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket("user-files")
+                        .object(expectedFileName)
+                        .build()
+            ).readAllBytes();
+
+        assertThat(storageFileContent).isEqualTo(originalFileContent);
+    }
+
+    @Test
+    @SneakyThrows
+    void whenRenameFile_fileHasNewName() {
+        registrationService.registerNewUser(testUser);
+        Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
+        Path testFilePath = Paths.get("src/test/resources/files/test-image.jpg");
+
+        byte[] originalFileContent = Files.readAllBytes(testFilePath);
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "file",
+                testFilePath.getFileName().toString(),
+                "multipart/form-data",
+                originalFileContent
+        );
+
+        minioService.uploadMultipartFile(testUserId, "", multipartFile);
+
+        minioService.renameObject(testUserId, testFilePath.getFileName().toString(), "newFileName");
+
+        List<String> listOfObjectNames = new ArrayList<>();
+        for (Item item: minioService.getListOfItems(testUserId, "")) {
+            listOfObjectNames.add(item.objectName());
+        }
+
+        String oldObjectName = "user-" + testUserId + "-files/" + testFilePath.getFileName();
+        String newObjectName = "user-" + testUserId + "-files/" + "newFileName";
+
+        assertThat(listOfObjectNames).doesNotContain(oldObjectName);
+        assertThat(listOfObjectNames).contains(newObjectName);
+
+    }
+}

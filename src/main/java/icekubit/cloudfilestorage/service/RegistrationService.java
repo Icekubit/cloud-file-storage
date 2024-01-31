@@ -34,7 +34,7 @@ public class RegistrationService {
     }
 
     @PostConstruct
-    public void initialize() {
+    private void initialize() {
         nameConstraint = userRepository.findConstraintNameByColumnName("name");
         emailConstraint = userRepository.findConstraintNameByColumnName("email");
     }
