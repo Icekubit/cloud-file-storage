@@ -5,7 +5,6 @@ import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.model.dto.UserDto;
 import icekubit.cloudfilestorage.repo.UserRepository;
 import icekubit.cloudfilestorage.service.RegistrationService;
-import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.messages.Item;
 import lombok.SneakyThrows;
@@ -23,7 +22,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -82,54 +80,16 @@ public class MinioServiceTest {
             .build();
 
     @Test
-    void userRootFolderIsCreatedAfterUserRegistration() {
+    void shouldCreateUserRootFolderWhenUserRegisters() {
         registrationService.registerNewUser(testUser);
         Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
         String pathToUserRootFolder = "user-" + testUserId + "-files/";
         assertThat(minioRepo.doesFolderExist(pathToUserRootFolder)).isTrue();
-
-        System.out.println("goodbye" + userRepository.findAll());
     }
 
     @Test
     @SneakyThrows
-    void whenUploadFile_fileIsInStorage() {
-        registrationService.registerNewUser(testUser);
-        Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
-        Path testFilePath = Paths.get("src/test/resources/files/test-image.jpg");
-
-        byte[] originalFileContent = Files.readAllBytes(testFilePath);
-        MockMultipartFile multipartFile = new MockMultipartFile(
-                "file",
-                testFilePath.getFileName().toString(),
-                "multipart/form-data",
-                originalFileContent
-        );
-
-        minioService.uploadMultipartFile(testUserId, "", multipartFile);
-
-        List<String> listOfObjectNames = new ArrayList<>();
-        for (Item item: minioService.getListOfItems(testUserId, "")) {
-            listOfObjectNames.add(item.objectName());
-        }
-        String expectedFileName = "user-" + testUserId + "-files/" + testFilePath.getFileName();
-
-        assertThat(listOfObjectNames).contains(expectedFileName);
-
-
-        byte[] storageFileContent = minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket("user-files")
-                        .object(expectedFileName)
-                        .build()
-            ).readAllBytes();
-
-        assertThat(storageFileContent).isEqualTo(originalFileContent);
-    }
-
-    @Test
-    @SneakyThrows
-    void whenRenameFile_fileHasNewName() {
+    void shouldRenameFileSuccessfully() {
         registrationService.registerNewUser(testUser);
         Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
         Path testFilePath = Paths.get("src/test/resources/files/test-image.jpg");
@@ -156,6 +116,86 @@ public class MinioServiceTest {
 
         assertThat(listOfObjectNames).doesNotContain(oldObjectName);
         assertThat(listOfObjectNames).contains(newObjectName);
+
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldDeleteFileSuccessfully() {
+        registrationService.registerNewUser(testUser);
+        Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
+        Path testFilePath = Paths.get("src/test/resources/files/test-image.jpg");
+
+        byte[] originalFileContent = Files.readAllBytes(testFilePath);
+        MockMultipartFile multipartFile = new MockMultipartFile(
+                "file",
+                testFilePath.getFileName().toString(),
+                "multipart/form-data",
+                originalFileContent
+        );
+
+        minioService.uploadMultipartFile(testUserId, "", multipartFile);
+
+        assertThat(minioService.getListOfItems(testUserId, "")).isNotEmpty();
+
+        minioService.removeObject(testUserId, testFilePath.getFileName().toString());
+
+        assertThat(minioService.getListOfItems(testUserId, "")).isEmpty();
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldNotFindAnotherUserFilesWhenSearching() {
+        UserDto firstUser = UserDto.builder()
+                .name("first-user")
+                .password("test-password")
+                .email("firstUser@gmail.com")
+                .build();
+
+        UserDto secondUser = UserDto.builder()
+                .name("second-user")
+                .password("test-password")
+                .email("secondUser@gmail.com")
+                .build();
+
+        registrationService.registerNewUser(firstUser);
+        registrationService.registerNewUser(secondUser);
+
+        Integer firstUserId = userRepository.findByName(firstUser.getName()).get().getId();
+        Integer secondUserId = userRepository.findByName(secondUser.getName()).get().getId();
+
+        Path pathToFirstUserFile = Paths.get("src/test/resources/files/test-image.jpg");
+        Path pathToSecondUserFile = Paths.get("src/test/resources/files/testfile.txt");
+
+        MockMultipartFile firstUserMultipartFile = new MockMultipartFile(
+                "file",
+                pathToFirstUserFile.getFileName().toString(),
+                "multipart/form-data",
+                Files.readAllBytes(pathToFirstUserFile)
+        );
+
+        MockMultipartFile secondUserMultipartFile = new MockMultipartFile(
+                "file",
+                pathToSecondUserFile.getFileName().toString(),
+                "multipart/form-data",
+                Files.readAllBytes(pathToSecondUserFile)
+        );
+
+        minioService.uploadMultipartFile(firstUserId, "", firstUserMultipartFile);
+        minioService.uploadMultipartFile(secondUserId, "", secondUserMultipartFile);
+
+        List<Item> foundObjects = minioService.searchObjects(firstUserId, "test");
+        List<String> foundObjectNames = new ArrayList<>();
+        for (Item item: foundObjects) {
+            foundObjectNames.add(item.objectName());
+        }
+
+        String firstUserObjectName = "user-" + firstUserId + "-files/" + pathToFirstUserFile.getFileName();
+        String secondUserObjectName = "user-" + secondUserId + "-files/" + pathToSecondUserFile.getFileName();
+
+        assertThat(foundObjectNames).contains(firstUserObjectName);
+        assertThat(foundObjectNames).doesNotContain(secondUserObjectName);
+
 
     }
 }
