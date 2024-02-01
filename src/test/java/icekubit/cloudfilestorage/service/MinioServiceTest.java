@@ -1,10 +1,9 @@
-package icekubit.cloudfilestorage.integration;
+package icekubit.cloudfilestorage.service;
 
 import icekubit.cloudfilestorage.minio.MinioRepo;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.model.dto.UserDto;
 import icekubit.cloudfilestorage.repo.UserRepository;
-import icekubit.cloudfilestorage.service.RegistrationService;
 import io.minio.MinioClient;
 import io.minio.messages.Item;
 import lombok.SneakyThrows;
