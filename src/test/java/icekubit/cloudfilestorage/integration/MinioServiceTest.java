@@ -17,11 +17,13 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -94,13 +96,7 @@ public class MinioServiceTest {
         Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
         Path testFilePath = Paths.get("src/test/resources/files/test-image.jpg");
 
-        byte[] originalFileContent = Files.readAllBytes(testFilePath);
-        MockMultipartFile multipartFile = new MockMultipartFile(
-                "file",
-                testFilePath.getFileName().toString(),
-                "multipart/form-data",
-                originalFileContent
-        );
+        MultipartFile multipartFile = getMockMultipartFile(testFilePath);
 
         minioService.uploadMultipartFile(testUserId, "", multipartFile);
 
@@ -121,19 +117,36 @@ public class MinioServiceTest {
 
     @Test
     @SneakyThrows
+    void shouldRenameFolderSuccessfully() {
+        registrationService.registerNewUser(testUser);
+        Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
+
+        String testFolderName = "test-folder";
+
+        minioService.createFolder(testUserId, "", testFolderName);
+
+        Path pathToTestImage = Paths.get("src/test/resources/files/test-image.jpg");
+        MultipartFile multipartFile = getMockMultipartFile(pathToTestImage);
+
+        String newFolderName = "renamed-folder";
+
+        minioService.uploadMultipartFile(testUserId, testFolderName, multipartFile);
+        minioService.renameObject(testUserId, testFolderName + "/", newFolderName);
+
+        assertThat(minioService.searchObjects(testUserId, newFolderName)).isNotEmpty();
+        assertThat(minioService.searchObjects(testUserId, testFolderName)).isEmpty();
+
+
+    }
+
+    @Test
+    @SneakyThrows
     void shouldDeleteFileSuccessfully() {
         registrationService.registerNewUser(testUser);
         Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
         Path testFilePath = Paths.get("src/test/resources/files/test-image.jpg");
 
-        byte[] originalFileContent = Files.readAllBytes(testFilePath);
-        MockMultipartFile multipartFile = new MockMultipartFile(
-                "file",
-                testFilePath.getFileName().toString(),
-                "multipart/form-data",
-                originalFileContent
-        );
-
+        MultipartFile multipartFile = getMockMultipartFile(testFilePath);
         minioService.uploadMultipartFile(testUserId, "", multipartFile);
 
         assertThat(minioService.getListOfItems(testUserId, "")).isNotEmpty();
@@ -167,19 +180,8 @@ public class MinioServiceTest {
         Path pathToFirstUserFile = Paths.get("src/test/resources/files/test-image.jpg");
         Path pathToSecondUserFile = Paths.get("src/test/resources/files/testfile.txt");
 
-        MockMultipartFile firstUserMultipartFile = new MockMultipartFile(
-                "file",
-                pathToFirstUserFile.getFileName().toString(),
-                "multipart/form-data",
-                Files.readAllBytes(pathToFirstUserFile)
-        );
-
-        MockMultipartFile secondUserMultipartFile = new MockMultipartFile(
-                "file",
-                pathToSecondUserFile.getFileName().toString(),
-                "multipart/form-data",
-                Files.readAllBytes(pathToSecondUserFile)
-        );
+        MultipartFile firstUserMultipartFile = getMockMultipartFile(pathToFirstUserFile);
+        MultipartFile secondUserMultipartFile = getMockMultipartFile(pathToSecondUserFile);
 
         minioService.uploadMultipartFile(firstUserId, "", firstUserMultipartFile);
         minioService.uploadMultipartFile(secondUserId, "", secondUserMultipartFile);
@@ -195,7 +197,14 @@ public class MinioServiceTest {
 
         assertThat(foundObjectNames).contains(firstUserObjectName);
         assertThat(foundObjectNames).doesNotContain(secondUserObjectName);
+    }
 
-
+    private MultipartFile getMockMultipartFile(Path path) throws IOException {
+        return new MockMultipartFile(
+                "file",
+                path.getFileName().toString(),
+                "multipart/form-data",
+                Files.readAllBytes(path)
+        );
     }
 }

@@ -47,6 +47,8 @@ public class FileOperationsController {
         Integer userId = (Integer) httpSession.getAttribute("userId");
         for (MultipartFile file: files) {
             minioService.uploadMultipartFile(userId, path, file);
+            System.out.println(file.getName());
+            System.out.println(file.getOriginalFilename());
         }
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
