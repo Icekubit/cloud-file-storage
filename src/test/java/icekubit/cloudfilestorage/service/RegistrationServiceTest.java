@@ -1,76 +1,86 @@
-package icekubit.cloudfilestorage.integration;
+package icekubit.cloudfilestorage.service;
 
-import icekubit.cloudfilestorage.TestBeans;
+
 import icekubit.cloudfilestorage.exception.UniqueEmailConstraintException;
 import icekubit.cloudfilestorage.exception.UniqueNameConstraintException;
+import icekubit.cloudfilestorage.minio.MinioRepo;
+import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.model.dto.UserDto;
 import icekubit.cloudfilestorage.model.entity.User;
 import icekubit.cloudfilestorage.repo.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-
-@SpringBootTest(classes = TestBeans.class)
+@Testcontainers
+@SpringBootTest
 @TestPropertySource("classpath:test-application.properties")
 @Transactional
 public class RegistrationServiceTest {
 
     @Autowired
-    private icekubit.cloudfilestorage.service.RegistrationService registrationService;
+    private RegistrationService registrationService;
 
     @Autowired
     private UserRepository userRepository;
 
+    @Container
+    @ServiceConnection
+    private static final PostgreSQLContainer<?> postgresContainer
+            = new PostgreSQLContainer<>("postgres:latest");
+
+    @MockBean
+    private MinioService minioService;
+
+    @MockBean
+    private MinioRepo minioRepo;
+
+    private final UserDto testUser = UserDto.builder()
+            .name("test-user")
+            .password("test-password")
+            .email("test@gmail.com")
+            .build();
+
     @Test
     void databaseContainsUserAfterRegistration() {
-        UserDto testUser = UserDto.builder()
-                .name("test")
-                .password("test")
-                .email("test@gmail.com")
-                .build();
         registrationService.registerNewUser(testUser);
-        Optional<User> userOptional = userRepository.findByName("test");
+        Optional<User> userOptional = userRepository.findByName(testUser.getName());
         assertThat(userOptional).isNotEmpty();
     }
 
     @Test
     void registrationUserWithTheSameNameThrowsException() {
-        UserDto testUser = UserDto.builder()
-                .name("testUser")
-                .password("test")
-                .email("testUser@gmail.com")
-                .build();
-        UserDto testUserNamesake = UserDto.builder()
-                .name("testUser")
+        registrationService.registerNewUser(testUser);
+        String username = testUser.getName();
+        UserDto anotherUserWithTheSameName = UserDto.builder()
+                .name(username)
                 .password("somePassword")
                 .email("testUserNamesake@gmail.com")
                 .build();
-        registrationService.registerNewUser(testUser);
-        assertThatThrownBy(() -> registrationService.registerNewUser(testUserNamesake))
+        assertThatThrownBy(() -> registrationService.registerNewUser(anotherUserWithTheSameName))
                 .isInstanceOf(UniqueNameConstraintException.class);
     }
 
     @Test
     void registrationUserWithTheSameEmailThrowsException() {
-        UserDto testUser = UserDto.builder()
-                .name("testUser")
-                .password("test")
-                .email("testUser@gmail.com")
-                .build();
+        registrationService.registerNewUser(testUser);
         UserDto testUserWithTheSameEmail = UserDto.builder()
                 .name("testUserWithTheSameEmail")
                 .password("somePassword")
-                .email("testUser@gmail.com")
+                .email(testUser.getEmail())
                 .build();
-        registrationService.registerNewUser(testUser);
         assertThatThrownBy(() -> registrationService.registerNewUser(testUserWithTheSameEmail))
                 .isInstanceOf(UniqueEmailConstraintException.class);
     }
