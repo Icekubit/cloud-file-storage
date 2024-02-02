@@ -31,8 +31,16 @@ public class FileOperationsController {
     @PostMapping("/file/upload")
     public String uploadFile(@RequestParam MultipartFile file,
                                    @RequestParam String path,
+                                   RedirectAttributes redirectAttributes,
                                    HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
+
+        if (isRepeatableObjectName(userId, path, file.getOriginalFilename())) {
+            redirectAttributes.addFlashAttribute("theSameNameOfUploadingFileError", file.getOriginalFilename());
+            return "redirect:/" +
+                    ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
+        }
+
         minioService.uploadMultipartFile(userId, path, file);
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
@@ -83,8 +91,18 @@ public class FileOperationsController {
     @PostMapping("/folder/upload")
     public String uploadFolder(@RequestParam MultipartFile[] files,
                                      @RequestParam String path,
+                                     RedirectAttributes redirectAttributes,
                                      HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
+
+        String folderName = Paths.get(files[0].getOriginalFilename()).getName(0).toString();
+
+        if (isRepeatableObjectName(userId, path, folderName)) {
+            redirectAttributes.addFlashAttribute("theSameNameOfUploadingFolderError", folderName);
+            return "redirect:/" +
+                    ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
+        }
+
         for (MultipartFile file: files) {
             minioService.uploadMultipartFile(userId, path, file);
         }

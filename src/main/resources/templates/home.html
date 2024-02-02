@@ -87,12 +87,18 @@
                 <form th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
                     <label for="file">Choose a file:</label>
                     <input type="file" id="file" name="file" />
+                    <span th:if="${theSameNameOfUploadingFileError != null}">
+                        <span th:text="'The object with the name ' + ${theSameNameOfUploadingFileError} + ' already exists in this folder'"></span>
+                    </span>
                     <input type="hidden" name="path" th:value="${path}" />
                     <input type="submit" value="Upload" />
                 </form>
                 <form th:action="@{/folder/upload}" th:method="post" enctype="multipart/form-data">
                     <label for="files">Choose a folder:</label>
                     <input type="file" id="files" name="files" webkitdirectory multiple/>
+                    <span th:if="${theSameNameOfUploadingFolderError != null}">
+                        <span th:text="'The object with the name ' + ${theSameNameOfUploadingFolderError} + ' already exists in this folder'"></span>
+                    </span>
                     <input type="hidden" name="path" th:value="${path}" />
                     <input type="submit" value="Upload" />
                 </form>
