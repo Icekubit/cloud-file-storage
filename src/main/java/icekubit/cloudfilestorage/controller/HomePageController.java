@@ -2,7 +2,7 @@ package icekubit.cloudfilestorage.controller;
 
 import icekubit.cloudfilestorage.dto.BreadCrumbDto;
 import icekubit.cloudfilestorage.dto.FolderForm;
-import icekubit.cloudfilestorage.dto.RenameObjectForm;
+import icekubit.cloudfilestorage.dto.RenameFormDto;
 import icekubit.cloudfilestorage.mapper.MinioMapper;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
@@ -76,7 +76,7 @@ public class HomePageController {
             model.addAttribute("listOfItems", listOfItems);
             model.addAttribute("breadCrumbs", makeBreadCrumbsFromPath(path));
             model.addAttribute("folderForm", new FolderForm());
-            model.addAttribute("renameObjectForm", new RenameObjectForm());
+            model.addAttribute("renameFormDto", new RenameFormDto());
         } else if (path != null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }

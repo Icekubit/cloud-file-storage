@@ -1,7 +1,7 @@
 package icekubit.cloudfilestorage.controller;
 
 import icekubit.cloudfilestorage.dto.FolderForm;
-import icekubit.cloudfilestorage.dto.RenameObjectForm;
+import icekubit.cloudfilestorage.dto.RenameFormDto;
 import icekubit.cloudfilestorage.minio.MinioService;
 import io.minio.messages.Item;
 import jakarta.servlet.http.HttpSession;
@@ -122,22 +122,17 @@ public class FileOperationsController {
     }
 
     @PutMapping("/file")
-    public String renameObject(@RequestParam String relativePathToObject,
-                               @Valid RenameObjectForm renameObjectForm,
+    public String renameObject(@Valid RenameFormDto renameFormDto,
                                BindingResult bindingResult,
                                RedirectAttributes redirectAttributes,
                                @RequestParam String path,
                                HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
 
-        if (!bindingResult.hasErrors() && isRepeatableObjectName(userId, path, renameObjectForm.getObjectName())) {
-            bindingResult.rejectValue("objectName",
-                    "repeatableObjectName",
-                    "The folder or the file with this name already exists");
-        }
+        String relativePathToObject = renameFormDto.getRelativePathToObject();
 
         if (!bindingResult.hasErrors()) {
-            if (path.length() + renameObjectForm.getObjectName().length() > 1000) {
+            if (path.length() + renameFormDto.getObjectName().length() > 1000) {
                 bindingResult.rejectValue("objectName",
                         "tooLongPath",
                         "The path is too long");
@@ -146,13 +141,13 @@ public class FileOperationsController {
 
         if (bindingResult.hasErrors()) {
 
-            redirectAttributes.addFlashAttribute("errors", bindingResult.getAllErrors());
+            redirectAttributes.addFlashAttribute("renameValidationErrors", bindingResult.getAllErrors());
             redirectAttributes.addFlashAttribute("relativePathToItemWithError", relativePathToObject);
             return "redirect:/" +
                     ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
         }
 
-        minioService.renameObject(userId, relativePathToObject, renameObjectForm.getObjectName());
+        minioService.renameObject(userId, relativePathToObject, renameFormDto.getObjectName());
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }

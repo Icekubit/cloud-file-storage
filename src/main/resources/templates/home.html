@@ -43,12 +43,12 @@
                                 <input type="hidden" name="path" th:value="${path}"/>
                                 <input type="submit" value="Delete"/>
                             </form>
-                            <form th:action="@{/file}" th:method="put" th:object="${renameObjectForm}" style="display: inline;">
+                            <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">
                                 <label> New file name : <input type="text" th:field="*{objectName}"/></label>
                                 <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>
-                                <span th:if="errors">
+                                <span th:if="renameValidationErrors">
                                     <span th:if="${#strings.equals(relativePathToItemWithError, element.relativePath)}">
-                                        <span th:each="error: ${errors}" th:if="${error.field eq 'objectName'}" th:text="${error.defaultMessage}"></span>
+                                        <span th:each="error: ${renameValidationErrors}" th:text="${error.defaultMessage}"></span>
                                     </span>
                                 </span>
                                 <input type="hidden" name="path" th:value="${path}"/>
@@ -62,12 +62,12 @@
                                 <input type="hidden" name="path" th:value="${path}"/>
                                 <input type="submit" value="Delete"/>
                             </form>
-                            <form th:action="@{/file}" th:method="put" th:object="${renameObjectForm}" style="display: inline;">
+                            <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">
                                 <label> New file name : <input type="text" th:field="*{objectName}"/></label>
                                 <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>
-                                <span th:if="errors">
+                                <span th:if="renameValidationErrors">
                                     <span th:if="${#strings.equals(relativePathToItemWithError, element.relativePath)}">
-                                        <span th:each="error: ${errors}" th:if="${error.field eq 'objectName'}" th:text="${error.defaultMessage}"></span>
+                                        <span th:each="error: ${renameValidationErrors}" th:text="${error.defaultMessage}"></span>
                                     </span>
                                 </span>
                                 <input type="hidden" name="path" th:value="${path}"/>
