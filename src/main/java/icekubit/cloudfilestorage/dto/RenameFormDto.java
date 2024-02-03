@@ -1,5 +1,6 @@
 package icekubit.cloudfilestorage.dto;
 
+import icekubit.cloudfilestorage.validation.MaxPathLengthConstraint;
 import icekubit.cloudfilestorage.validation.UniqueItemNameConstraint;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -8,6 +9,7 @@ import lombok.Data;
 
 @Data
 @UniqueItemNameConstraint
+@MaxPathLengthConstraint
 public class RenameFormDto {
     @NotBlank(message = "Name is required")
     @Pattern(regexp = "^[^/]*$", message = "Name cannot contain a slash")

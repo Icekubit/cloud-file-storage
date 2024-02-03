@@ -1,6 +1,6 @@
 package icekubit.cloudfilestorage.controller;
 
-import icekubit.cloudfilestorage.dto.FolderForm;
+import icekubit.cloudfilestorage.dto.CreateFolderFormDto;
 import icekubit.cloudfilestorage.dto.RenameFormDto;
 import icekubit.cloudfilestorage.minio.MinioService;
 import io.minio.messages.Item;
@@ -47,29 +47,16 @@ public class FileOperationsController {
     }
 
     @PostMapping("/folder")
-    public String createFolder(@Valid FolderForm folderForm,
+    public String createFolder(@Valid CreateFolderFormDto folderForm,
                                BindingResult bindingResult,
                                RedirectAttributes redirectAttributes,
-                               @RequestParam String path,
                                HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
-        if (!bindingResult.hasErrors() && isRepeatableObjectName(userId, path, folderForm.getFolderName())) {
-            bindingResult.rejectValue("folderName",
-                    "repeatableFolderName",
-                    "The folder or the file with this name already exists");
-        }
-
-        if (!bindingResult.hasErrors()) {
-            if (path.length() + folderForm.getFolderName().length() > 1000) {
-                bindingResult.rejectValue("folderName",
-                        "tooLongPath",
-                        "The path is too long");
-            }
-        }
+        String path = folderForm.getPath();
 
         if (bindingResult.hasErrors()) {
 
-            redirectAttributes.addFlashAttribute("errors", bindingResult.getAllErrors());
+            redirectAttributes.addFlashAttribute("createFolderValidationErrors", bindingResult.getAllErrors());
             return "redirect:/" +
                     ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
         }
@@ -130,14 +117,6 @@ public class FileOperationsController {
         Integer userId = (Integer) httpSession.getAttribute("userId");
 
         String relativePathToObject = renameFormDto.getRelativePathToObject();
-
-        if (!bindingResult.hasErrors()) {
-            if (path.length() + renameFormDto.getObjectName().length() > 1000) {
-                bindingResult.rejectValue("objectName",
-                        "tooLongPath",
-                        "The path is too long");
-            }
-        }
 
         if (bindingResult.hasErrors()) {
 
