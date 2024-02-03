@@ -52,7 +52,7 @@ public class FileOperationsController {
                                RedirectAttributes redirectAttributes,
                                HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
-        String path = folderForm.getPath();
+        String path = folderForm.getCurrentPath();
 
         if (bindingResult.hasErrors()) {
 
@@ -61,7 +61,7 @@ public class FileOperationsController {
                     ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
         }
 
-        minioService.createFolder(userId, path, folderForm.getFolderName());
+        minioService.createFolder(userId, path, folderForm.getObjectName());
         return "redirect:/" +
                 ((path.isEmpty()) ? "" : "?path=" + URLEncoder.encode(path, StandardCharsets.UTF_8));
     }
@@ -112,11 +112,11 @@ public class FileOperationsController {
     public String renameObject(@Valid RenameFormDto renameFormDto,
                                BindingResult bindingResult,
                                RedirectAttributes redirectAttributes,
-                               @RequestParam String path,
                                HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
 
         String relativePathToObject = renameFormDto.getRelativePathToObject();
+        String path = renameFormDto.getCurrentPath();
 
         if (bindingResult.hasErrors()) {
 

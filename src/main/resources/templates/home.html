@@ -51,7 +51,7 @@
                                         <span th:each="error: ${renameValidationErrors}" th:text="${error.defaultMessage}"></span>
                                     </span>
                                 </span>
-                                <input type="hidden" name="path" th:value="${path}"/>
+                                <input type="hidden" name="currentPath" th:value="${path}"/>
                                 <input type="submit" value="Rename"/>
                             </form>
                         </div>
@@ -70,18 +70,18 @@
                                         <span th:text="${renameValidationErrors[0].defaultMessage}"></span>
                                     </span>
                                 </span>
-                                <input type="hidden" name="path" th:value="${path}"/>
+                                <input type="hidden" name="currentPath" th:value="${path}"/>
                                 <input type="submit" value="Rename"/>
                             </form>
                         </div>
                     </li>
                 </ul>
                 <form th:action="@{/folder}" th:method="post" th:object="${folderForm}">
-                    <label> Folder name : <input type="text" th:field="*{folderName}"/></label>
+                    <label> Folder name : <input type="text" th:field="*{objectName}"/></label>
                     <span th:if="${createFolderValidationErrors != null and createFolderValidationErrors.size() > 0}">
                         <span th:text="${createFolderValidationErrors[0].defaultMessage}"></span>
                     </span>
-                    <input type="hidden" name="path" th:value="${path}"/>
+                    <input type="hidden" name="currentPath" th:value="${path}"/>
                     <input type="submit" value="Create folder"/>
                 </form>
                 <form th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">

@@ -10,10 +10,10 @@ import lombok.Data;
 @Data
 @UniqueItemNameConstraint
 @MaxPathLengthConstraint
-public class CreateFolderFormDto {
+public class CreateFolderFormDto implements Validatable {
     @NotBlank(message = "Folder name is required")
     @Pattern(regexp = "^[^/]*$", message = "Folder name cannot contain a slash")
-    @Size(max = 240, message = "Folder name should less than 256 characters")
-    private String folderName;
-    private String path;
+    @Size(max = 240, message = "Folder name should be less than 256 characters")
+    private String objectName;
+    private String currentPath;
 }

@@ -10,10 +10,11 @@ import lombok.Data;
 @Data
 @UniqueItemNameConstraint
 @MaxPathLengthConstraint
-public class RenameFormDto {
+public class RenameFormDto implements Validatable {
     @NotBlank(message = "Name is required")
     @Pattern(regexp = "^[^/]*$", message = "Name cannot contain a slash")
     @Size(max = 240, message = "Object name should be less than 256 characters")
     private String objectName;
     private String relativePathToObject;
+    private String currentPath;
 }
