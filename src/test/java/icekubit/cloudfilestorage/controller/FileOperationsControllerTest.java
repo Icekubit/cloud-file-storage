@@ -2,6 +2,7 @@ package icekubit.cloudfilestorage.controller;
 
 import icekubit.cloudfilestorage.controller.FileOperationsController;
 import icekubit.cloudfilestorage.minio.MinioService;
+import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,9 +20,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class FileOperationsControllerTest {
@@ -41,6 +43,22 @@ class FileOperationsControllerTest {
         session = new MockHttpSession();
         session.setAttribute("userId", 42);
     }
+
+    @Test
+    public void testRemoveObject() throws Exception {
+
+        mockMvc.perform(delete("/file")
+                        .param("objectForDeletion", "testObject")
+                        .param("path", "/test/path")
+                        .session(session))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/?path=%2Ftest%2Fpath"))
+                .andExpect(flash().attributeCount(0));  // Assuming no flash attributes are set
+
+        // Verifying that the removeObject method is called with the correct arguments
+        verify(minioService).removeObject(eq(42), eq("testObject"));
+    }
+
 
     @Test
     void testUploadFile() throws Exception {
