@@ -1,7 +1,6 @@
 package icekubit.cloudfilestorage.minio;
 
 import io.minio.messages.Item;
-import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,24 +17,21 @@ public class MinioService {
     }
 
 
-    @SneakyThrows
     public void createRootFolder(Integer userId) {
         String minioPathToFolder = getMinioPathToObject(userId, "") + "/";
         minioRepo.createFolder(minioPathToFolder);
     }
-    @SneakyThrows
+
     public void createFolder(Integer userId, String path, String newFolderName) {
         String minioPathToFolder = getMinioPathToObject(userId, path) + "/" + newFolderName + "/";
         minioRepo.createFolder(minioPathToFolder);
     }
 
-    @SneakyThrows
     public void uploadMultipartFile(Integer userId, String path, MultipartFile file) {
         String minioPathToFile = getMinioPathToObject(userId, path) + "/" + file.getOriginalFilename();
         minioRepo.uploadFile(file, minioPathToFile);
     }
 
-    @SneakyThrows
     public boolean doesFolderExist(Integer userId, String path) {
         String minioPathToFolder = getMinioPathToObject(userId, path) + "/";
         return minioRepo.doesFolderExist(minioPathToFolder);

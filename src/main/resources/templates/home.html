@@ -43,10 +43,15 @@
                                 <input type="hidden" name="path" th:value="${path}"/>
                                 <input type="submit" value="Delete"/>
                             </form>
-                            <form th:action="@{/file}" th:method="put" style="display: inline;">
-                                <label> New file name : <input type="text" name="newObjectName"/></label>
+                            <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">
+                                <label> New file name : <input type="text" th:field="*{objectName}"/></label>
                                 <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>
-                                <input type="hidden" name="path" th:value="${path}"/>
+                                <span th:if="renameValidationErrors">
+                                    <span th:if="${#strings.equals(relativePathToItemWithError, element.relativePath)}">
+                                        <span th:each="error: ${renameValidationErrors}" th:text="${error.defaultMessage}"></span>
+                                    </span>
+                                </span>
+                                <input type="hidden" name="currentPath" th:value="${path}"/>
                                 <input type="submit" value="Rename"/>
                             </form>
                         </div>
@@ -57,30 +62,44 @@
                                 <input type="hidden" name="path" th:value="${path}"/>
                                 <input type="submit" value="Delete"/>
                             </form>
-                            <form th:action="@{/file}" th:method="put" style="display: inline;">
-                                <label> New file name : <input type="text" name="newObjectName"/></label>
+                            <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">
+                                <label> New file name : <input type="text" th:field="*{objectName}"/></label>
                                 <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>
-                                <input type="hidden" name="path" th:value="${path}"/>
+                                <span th:if="${renameValidationErrors != null and renameValidationErrors.size() > 0}">
+                                    <span th:if="${#strings.equals(relativePathToItemWithError, element.relativePath)}">
+                                        <span th:text="${renameValidationErrors[0].defaultMessage}"></span>
+                                    </span>
+                                </span>
+                                <input type="hidden" name="currentPath" th:value="${path}"/>
                                 <input type="submit" value="Rename"/>
                             </form>
                         </div>
                     </li>
                 </ul>
-                <form th:action="@{/folder}" method="post">
-                    <label> Folder name : <input type="text" name="folderName"/></label>
-                    <input type="hidden" name="path" th:value="${path}"/>
+                <form th:action="@{/folder}" th:method="post" th:object="${folderForm}">
+                    <label> Folder name : <input type="text" th:field="*{objectName}"/></label>
+                    <span th:if="${createFolderValidationErrors != null and createFolderValidationErrors.size() > 0}">
+                        <span th:text="${createFolderValidationErrors[0].defaultMessage}"></span>
+                    </span>
+                    <input type="hidden" name="currentPath" th:value="${path}"/>
                     <input type="submit" value="Create folder"/>
                 </form>
-                <form th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
+                <form th:action="@{/file/upload}" th:method="post" th:object="${uploadFileFormDto}" enctype="multipart/form-data">
                     <label for="file">Choose a file:</label>
                     <input type="file" id="file" name="file" />
-                    <input type="hidden" name="path" th:value="${path}" />
+                    <span th:if="${uploadFileValidationErrors != null and uploadFileValidationErrors.size() > 0}">
+                        <span th:text="${uploadFileValidationErrors[0].defaultMessage}"></span>
+                    </span>
+                    <input type="hidden" name="currentPath" th:value="${path}" />
                     <input type="submit" value="Upload" />
                 </form>
-                <form th:action="@{/folder/upload}" th:method="post" enctype="multipart/form-data">
+                <form th:action="@{/folder/upload}" th:method="post" th:object="${uploadFolderFormDto}" enctype="multipart/form-data">
                     <label for="files">Choose a folder:</label>
                     <input type="file" id="files" name="files" webkitdirectory multiple/>
-                    <input type="hidden" name="path" th:value="${path}" />
+                    <span th:if="${uploadFolderValidationErrors != null and uploadFolderValidationErrors.size() > 0}">
+                        <span th:text="${uploadFolderValidationErrors[0].defaultMessage}"></span>
+                    </span>
+                    <input type="hidden" name="currentPath" th:value="${path}" />
                     <input type="submit" value="Upload" />
                 </form>
             </div>
