@@ -84,22 +84,22 @@
                     <input type="hidden" name="currentPath" th:value="${path}"/>
                     <input type="submit" value="Create folder"/>
                 </form>
-                <form th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data">
+                <form th:action="@{/file/upload}" th:method="post" th:object="${uploadFileFormDto}" enctype="multipart/form-data">
                     <label for="file">Choose a file:</label>
                     <input type="file" id="file" name="file" />
-                    <span th:if="${theSameNameOfUploadingFileError != null}">
-                        <span th:text="'The object with the name ' + ${theSameNameOfUploadingFileError} + ' already exists in this folder'"></span>
+                    <span th:if="${uploadFileValidationErrors != null and uploadFileValidationErrors.size() > 0}">
+                        <span th:text="${uploadFileValidationErrors[0].defaultMessage}"></span>
                     </span>
-                    <input type="hidden" name="path" th:value="${path}" />
+                    <input type="hidden" name="currentPath" th:value="${path}" />
                     <input type="submit" value="Upload" />
                 </form>
-                <form th:action="@{/folder/upload}" th:method="post" enctype="multipart/form-data">
+                <form th:action="@{/folder/upload}" th:method="post" th:object="${uploadFolderFormDto}" enctype="multipart/form-data">
                     <label for="files">Choose a folder:</label>
                     <input type="file" id="files" name="files" webkitdirectory multiple/>
-                    <span th:if="${theSameNameOfUploadingFolderError != null}">
-                        <span th:text="'The object with the name ' + ${theSameNameOfUploadingFolderError} + ' already exists in this folder'"></span>
+                    <span th:if="${uploadFolderValidationErrors != null and uploadFolderValidationErrors.size() > 0}">
+                        <span th:text="${uploadFolderValidationErrors[0].defaultMessage}"></span>
                     </span>
-                    <input type="hidden" name="path" th:value="${path}" />
+                    <input type="hidden" name="currentPath" th:value="${path}" />
                     <input type="submit" value="Upload" />
                 </form>
             </div>

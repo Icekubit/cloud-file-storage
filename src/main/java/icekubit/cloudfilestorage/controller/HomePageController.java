@@ -77,6 +77,8 @@ public class HomePageController {
             model.addAttribute("breadCrumbs", makeBreadCrumbsFromPath(path));
             model.addAttribute("folderForm", new CreateFolderFormDto());
             model.addAttribute("renameFormDto", new RenameFormDto());
+            model.addAttribute("uploadFileFormDto", new RenameFormDto());
+            model.addAttribute("uploadFolderFormDto", new RenameFormDto());
         } else if (path != null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
