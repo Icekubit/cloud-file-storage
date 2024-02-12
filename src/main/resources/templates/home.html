@@ -4,6 +4,10 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Cloud File Storage</title>
+    <link th:href="@{/css/home-page-style.css}" rel="stylesheet"
+          th:if="${#authorization.expression('isAuthenticated()')}">
+    <script th:src="@{js/home-page-script.js}" defer
+            th:if="${#authorization.expression('isAuthenticated()')}"></script>
 </head>
     <body>
         <div>
@@ -40,7 +44,7 @@
                                th:text="'/' + ${element.relativePath}"></a>
                             <form th:action="@{/file}" th:method="delete" style="display: inline;">
                                 <input type="hidden" name="objectForDeletion" th:value="${element.relativePath}"/>
-                                <input type="hidden" name="path" th:value="${path}"/>
+                                <input type="hidden" name="currentPath" th:value="${path}"/>
                                 <input type="submit" value="Delete"/>
                             </form>
                             <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">
@@ -57,9 +61,10 @@
                         </div>
                         <div th:if="${!element.isDirectory}">
                             <span th:text="'/' + ${element.relativePath}"></span>
+                            <span th:text="${path}"></span>
                             <form th:action="@{/file}" th:method="delete" style="display: inline;">
                                 <input type="hidden" name="objectForDeletion" th:value="${element.relativePath}"/>
-                                <input type="hidden" name="path" th:value="${path}"/>
+                                <input type="hidden" name="currentPath" th:value="${path}"/>
                                 <input type="submit" value="Delete"/>
                             </form>
                             <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">
@@ -102,8 +107,9 @@
                     <input type="hidden" name="currentPath" th:value="${path}" />
                     <input type="submit" value="Upload" />
                 </form>
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone__prompt">Drop files and folders here</div>
             </div>
         </div>
-
     </body>
 </html>

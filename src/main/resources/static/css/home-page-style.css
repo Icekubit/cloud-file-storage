@@ -1,0 +1,24 @@
+.drop-zone {
+    background-color: #f0f0f0;
+    border: 2px dashed #aaaaaa;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin: 50px auto;
+    width: 300px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.drop-zone.drop-zone--over {
+    background-color: #e0e0e0; /* Изменение цвета фона при наведении */
+}
+
+.drop-zone__prompt {
+    font-size: 18px;
+    color: #333333;
+}
+
+.drop-zone__input {
+    display: none;
+}
