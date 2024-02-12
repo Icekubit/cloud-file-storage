@@ -18,9 +18,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
 @Controller
 public class FileOperationsController {
     private final MinioService minioService;
@@ -31,17 +28,17 @@ public class FileOperationsController {
 
     @PostMapping("/file/upload")
     public RedirectView uploadFile(@Valid UploadFileFormDto uploadFileFormDto,
-                                   BindingResult bindingResult,
-                                   RedirectAttributes redirectAttributes,
-                                   HttpSession httpSession) {
+                                             BindingResult bindingResult,
+                                             RedirectAttributes redirectAttributes,
+                                             HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
 
         String path = uploadFileFormDto.getCurrentPath();
         MultipartFile file = uploadFileFormDto.getFile();
 
         if (bindingResult.hasErrors()) {
-
-            redirectAttributes.addFlashAttribute("uploadFileValidationErrors", bindingResult.getAllErrors());
+            redirectAttributes.addFlashAttribute("uploadFileValidationErrors"
+                    , bindingResult.getAllErrors());
             return buildRedirectView(path);
         }
 
@@ -81,7 +78,6 @@ public class FileOperationsController {
         String path = folderForm.getCurrentPath();
 
         if (bindingResult.hasErrors()) {
-
             redirectAttributes.addFlashAttribute("createFolderValidationErrors"
                     , bindingResult.getAllErrors());
             return buildRedirectView(path);
@@ -95,12 +91,14 @@ public class FileOperationsController {
 
     @DeleteMapping("/file")
     public RedirectView removeObject(@RequestParam String objectForDeletion,
-                                     @RequestParam String path,
+                                     @RequestParam String currentPath,
                                      HttpSession httpSession) {
         Integer userId = (Integer) httpSession.getAttribute("userId");
         minioService.removeObject(userId, objectForDeletion);
 
-        return buildRedirectView(path);
+        System.out.println("currentPath = " + currentPath);
+        return buildRedirectView(currentPath);
+
     }
 
     @PutMapping("/file")
@@ -114,7 +112,6 @@ public class FileOperationsController {
         String path = renameFormDto.getCurrentPath();
 
         if (bindingResult.hasErrors()) {
-
             redirectAttributes.addFlashAttribute("renameValidationErrors", bindingResult.getAllErrors());
             redirectAttributes.addFlashAttribute("relativePathToItemWithError", relativePathToObject);
             return buildRedirectView(path);
@@ -129,7 +126,7 @@ public class FileOperationsController {
             return new RedirectView("/");
         }
         return new RedirectView(UriComponentsBuilder.fromPath("/")
-                .queryParam("path", URLEncoder.encode(path, StandardCharsets.UTF_8))
+                .queryParam("path", path)
                 .toUriString());
     }
 }
