@@ -1,13 +1,14 @@
 package icekubit.cloudfilestorage.service;
 
 
-import icekubit.cloudfilestorage.exception.UniqueEmailConstraintException;
-import icekubit.cloudfilestorage.exception.UniqueNameConstraintException;
-import icekubit.cloudfilestorage.minio.MinioRepo;
-import icekubit.cloudfilestorage.minio.MinioService;
-import icekubit.cloudfilestorage.model.dto.UserDto;
-import icekubit.cloudfilestorage.model.entity.User;
-import icekubit.cloudfilestorage.repo.UserRepository;
+import icekubit.cloudfilestorage.auth.exception.UniqueEmailConstraintException;
+import icekubit.cloudfilestorage.auth.exception.UniqueNameConstraintException;
+import icekubit.cloudfilestorage.auth.service.RegistrationService;
+import icekubit.cloudfilestorage.storage.repo.MinioRepo;
+import icekubit.cloudfilestorage.storage.service.MinioService;
+import icekubit.cloudfilestorage.auth.model.dto.UserDto;
+import icekubit.cloudfilestorage.auth.model.entity.User;
+import icekubit.cloudfilestorage.auth.repo.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
