@@ -5,8 +5,10 @@ import icekubit.cloudfilestorage.dto.RenameFormDto;
 import icekubit.cloudfilestorage.dto.UploadFileFormDto;
 import icekubit.cloudfilestorage.dto.UploadFolderFormDto;
 import icekubit.cloudfilestorage.minio.MinioService;
+import icekubit.cloudfilestorage.service.CustomUserDetails;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,10 +30,10 @@ public class FileOperationsController {
 
     @PostMapping("/file/upload")
     public RedirectView uploadFile(@Valid UploadFileFormDto uploadFileFormDto,
-                                             BindingResult bindingResult,
-                                             RedirectAttributes redirectAttributes,
-                                             HttpSession httpSession) {
-        Integer userId = (Integer) httpSession.getAttribute("userId");
+                                   BindingResult bindingResult,
+                                   RedirectAttributes redirectAttributes,
+                                   Authentication authentication) {
+        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
 
         String path = uploadFileFormDto.getCurrentPath();
         MultipartFile file = uploadFileFormDto.getFile();
@@ -50,8 +52,8 @@ public class FileOperationsController {
     public RedirectView uploadFolder(@Valid UploadFolderFormDto uploadFolderFormDto,
                                BindingResult bindingResult,
                                RedirectAttributes redirectAttributes,
-                               HttpSession httpSession) {
-        Integer userId = (Integer) httpSession.getAttribute("userId");
+                               Authentication authentication) {
+        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
 
         MultipartFile[] files = uploadFolderFormDto.getFiles();
         String path = uploadFolderFormDto.getCurrentPath();
@@ -73,8 +75,8 @@ public class FileOperationsController {
     public RedirectView createFolder(@Valid CreateFolderFormDto folderForm,
                                BindingResult bindingResult,
                                RedirectAttributes redirectAttributes,
-                               HttpSession httpSession) {
-        Integer userId = (Integer) httpSession.getAttribute("userId");
+                               Authentication authentication) {
+        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
         String path = folderForm.getCurrentPath();
 
         if (bindingResult.hasErrors()) {
@@ -92,8 +94,8 @@ public class FileOperationsController {
     @DeleteMapping("/file")
     public RedirectView removeObject(@RequestParam String objectForDeletion,
                                      @RequestParam String currentPath,
-                                     HttpSession httpSession) {
-        Integer userId = (Integer) httpSession.getAttribute("userId");
+                                     Authentication authentication) {
+        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
         minioService.removeObject(userId, objectForDeletion);
 
         System.out.println("currentPath = " + currentPath);
@@ -105,8 +107,8 @@ public class FileOperationsController {
     public RedirectView renameObject(@Valid RenameFormDto renameFormDto,
                                BindingResult bindingResult,
                                RedirectAttributes redirectAttributes,
-                               HttpSession httpSession) {
-        Integer userId = (Integer) httpSession.getAttribute("userId");
+                               Authentication authentication) {
+        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
 
         String relativePathToObject = renameFormDto.getRelativePathToObject();
         String path = renameFormDto.getCurrentPath();

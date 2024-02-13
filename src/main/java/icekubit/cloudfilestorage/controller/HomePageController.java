@@ -6,6 +6,7 @@ import icekubit.cloudfilestorage.dto.RenameFormDto;
 import icekubit.cloudfilestorage.mapper.MinioMapper;
 import icekubit.cloudfilestorage.minio.MinioService;
 import icekubit.cloudfilestorage.repo.UserRepository;
+import icekubit.cloudfilestorage.service.CustomUserDetails;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -27,20 +28,16 @@ import java.util.stream.Collectors;
 @Controller
 public class HomePageController {
     private final MinioService minioService;
-    private final UserRepository userRepository;
     private final MinioMapper minioMapper;
 
     public HomePageController(MinioService minioService,
-                              UserRepository userRepository,
                               MinioMapper minioMapper) {
         this.minioService = minioService;
-        this.userRepository = userRepository;
         this.minioMapper = minioMapper;
     }
 
     @GetMapping("/")
     public String showHomePage(Authentication authentication,
-                               HttpSession httpSession,
                                @RequestParam(required = false) String path,
                                Model model) {
         if ((authentication == null || !authentication.isAuthenticated()) && path != null) {
@@ -49,11 +46,7 @@ public class HomePageController {
 
         Integer userId = 0;
         if (authentication != null && authentication.isAuthenticated()) {
-            userId = (Integer) httpSession.getAttribute("userId");
-            if (userId == null) {
-                userId = getUserId(authentication);
-                httpSession.setAttribute("userId", userId);
-            }
+            userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
         }
 
         if (path != null && path.endsWith("/")) {
@@ -84,13 +77,6 @@ public class HomePageController {
         }
 
         return "home";
-    }
-
-
-    private int getUserId(Authentication authentication) {
-        User userDetails = (User) authentication.getPrincipal();
-        String userName = userDetails.getUsername();
-        return userRepository.findByName(userName).get().getId();
     }
 
     private List<BreadCrumbDto> makeBreadCrumbsFromPath(String path) {

@@ -61,7 +61,6 @@
                         </div>
                         <div th:if="${!element.isDirectory}">
                             <span th:text="'/' + ${element.relativePath}"></span>
-                            <span th:text="${path}"></span>
                             <form th:action="@{/file}" th:method="delete" style="display: inline;">
                                 <input type="hidden" name="objectForDeletion" th:value="${element.relativePath}"/>
                                 <input type="hidden" name="currentPath" th:value="${path}"/>
