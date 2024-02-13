@@ -1,8 +1,7 @@
 package icekubit.cloudfilestorage.controller;
 
-import icekubit.cloudfilestorage.controller.FileOperationsController;
-import icekubit.cloudfilestorage.minio.MinioService;
-import jakarta.servlet.http.HttpSession;
+import icekubit.cloudfilestorage.storage.controller.FileOperationsController;
+import icekubit.cloudfilestorage.storage.service.MinioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
