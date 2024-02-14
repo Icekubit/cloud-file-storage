@@ -6,20 +6,29 @@ import icekubit.cloudfilestorage.storage.dto.UploadFileFormDto;
 import icekubit.cloudfilestorage.storage.dto.UploadFolderFormDto;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 
 @Controller
 public class FileOperationsController {
@@ -49,6 +58,30 @@ public class FileOperationsController {
         return buildRedirectView(path);
     }
 
+    @GetMapping("/file")
+    public ResponseEntity<Resource> downloadFile(@RequestParam String pathToFile,
+                             Authentication authentication) {
+        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+
+        ByteArrayResource byteArrayResource = null;
+        try (InputStream inputStream = minioService.downloadFile(userId, pathToFile)){
+            byteArrayResource = new ByteArrayResource(inputStream.readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        HttpHeaders headers = new HttpHeaders();
+        String fileName = Paths.get(pathToFile).getFileName().toString();
+        String urlEncodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + urlEncodedFileName + "\"");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(byteArrayResource);
+    }
+
     @PostMapping("/folder/upload")
     public RedirectView uploadFolder(@Valid UploadFolderFormDto uploadFolderFormDto,
                                BindingResult bindingResult,
@@ -72,12 +105,46 @@ public class FileOperationsController {
         return buildRedirectView(path);
     }
 
+    @GetMapping("/folder")
+    public ResponseEntity<ByteArrayResource> downloadFolder(@RequestParam String pathToFolder,
+                                                            Authentication authentication) {
+        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+
+        String zipArchiveName = Paths.get(pathToFolder).getFileName() + ".zip";
+
+        minioService.saveFolderAsZip(userId, pathToFolder);
+
+
+
+        ByteArrayResource byteArrayResource = null;
+        try (InputStream inputStream = new FileInputStream(zipArchiveName)){
+            byteArrayResource = new ByteArrayResource(inputStream.readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        File zipFile = new File(zipArchiveName);
+        if (zipFile.exists()) {
+            zipFile.delete();
+        }
+
+
+        HttpHeaders headers = new HttpHeaders();
+        String urlEncodedZipArchiveName = URLEncoder.encode(zipArchiveName, StandardCharsets.UTF_8);
+        headers.add(HttpHeaders.CONTENT_DISPOSITION
+                , "attachment; filename=\"" + urlEncodedZipArchiveName + "\"");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(byteArrayResource);
+    }
+
     @PostMapping("/folder")
     public RedirectView createFolder(@Valid CreateFolderFormDto folderForm,
                                      BindingResult bindingResult,
                                      RedirectAttributes redirectAttributes,
-                                     Authentication authentication,
-                                     HttpServletResponse httpServletResponse) {
+                                     Authentication authentication) {
         Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
         String path = folderForm.getCurrentPath();
 
@@ -99,8 +166,6 @@ public class FileOperationsController {
                                      Authentication authentication) {
         Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
         minioService.removeObject(userId, objectForDeletion);
-
-        System.out.println("currentPath = " + currentPath);
         return buildRedirectView(currentPath);
 
     }
