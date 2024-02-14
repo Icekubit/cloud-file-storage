@@ -42,6 +42,10 @@
                         <div th:if="${element.isDirectory}">
                             <a th:href="@{/(path=${#uris.escapePath(element.relativePath)})}"
                                th:text="'/' + ${element.relativePath}"></a>
+                            <form th:action="@{/folder}" th:method="get">
+                                <input type="hidden" name="pathToFolder" th:value="${element.relativePath}"/>
+                                <input type="submit" value="Download"/>
+                            </form>
                             <form th:action="@{/file}" th:method="delete" style="display: inline;">
                                 <input type="hidden" name="objectForDeletion" th:value="${element.relativePath}"/>
                                 <input type="hidden" name="currentPath" th:value="${path}"/>
@@ -61,6 +65,10 @@
                         </div>
                         <div th:if="${!element.isDirectory}">
                             <span th:text="'/' + ${element.relativePath}"></span>
+                            <form th:action="@{/file}" th:method="get">
+                                <input type="hidden" name="pathToFile" th:value="${element.relativePath}"/>
+                                <input type="submit" value="Download"/>
+                            </form>
                             <form th:action="@{/file}" th:method="delete" style="display: inline;">
                                 <input type="hidden" name="objectForDeletion" th:value="${element.relativePath}"/>
                                 <input type="hidden" name="currentPath" th:value="${path}"/>

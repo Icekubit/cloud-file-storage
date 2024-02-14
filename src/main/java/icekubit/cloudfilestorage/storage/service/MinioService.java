@@ -2,9 +2,14 @@ package icekubit.cloudfilestorage.storage.service;
 
 import icekubit.cloudfilestorage.storage.repo.MinioRepo;
 import io.minio.messages.Item;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.*;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +36,47 @@ public class MinioService {
     public void uploadMultipartFile(Integer userId, String path, MultipartFile file) {
         String minioPathToFile = getMinioPathToObject(userId, path) + "/" + file.getOriginalFilename();
         minioRepo.uploadFile(file, minioPathToFile);
+    }
+
+    public InputStream downloadFile(Integer userId, String path) {
+        String minioPathToFile = getMinioPathToObject(userId, path);
+        return minioRepo.downloadFile(minioPathToFile);
+    }
+
+    public void saveFolderAsZip(Integer userId, String path) {
+        String minioPathToFolder = getMinioPathToObject(userId, path);
+
+        String zipFileName = Paths.get(path).getFileName().toString();
+
+
+        try (ZipArchiveOutputStream zos
+                     = new ZipArchiveOutputStream(new FileOutputStream(zipFileName + ".zip"))) {
+            zos.setEncoding("Cp437");
+            zos.setFallbackToUTF8(true);
+            zos.setUseLanguageEncodingFlag(true);
+            zos.setCreateUnicodeExtraFields(
+                    ZipArchiveOutputStream.UnicodeExtraFieldPolicy.NOT_ENCODEABLE);
+
+            List<Item> items = minioRepo.getListOfItemsRecursively(minioPathToFolder);
+            for (Item item : items) {
+                if (!item.isDir()) {
+                    Path minioPathToItem = Paths.get(item.objectName());
+                    String relativePathToItem = Paths.get(minioPathToFolder).relativize(minioPathToItem).toString();
+                    ZipArchiveEntry entry = new ZipArchiveEntry(relativePathToItem);
+                    zos.putArchiveEntry(entry);
+
+                    try (InputStream inputStream = minioRepo.downloadFile(item.objectName())) {
+                        IOUtils.copy(inputStream, zos);
+                    }
+
+                    zos.closeArchiveEntry();
+                }
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean doesFolderExist(Integer userId, String path) {

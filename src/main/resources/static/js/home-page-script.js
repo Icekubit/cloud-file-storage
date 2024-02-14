@@ -14,14 +14,13 @@ dropZone.addEventListener('drop', async (event) => {
     dropZone.classList.remove('drop-zone--over');
     const items = event.dataTransfer.items;
     const fetchPromises = [];
+    let completedPromises = 0;
 
     for (let i = 0; i < items.length; i++) {
-        pushFetchToArray(items[i].webkitGetAsEntry())
+        pushFetchToArray(items[i].webkitGetAsEntry());
     }
+
     await Promise.all(fetchPromises);
-    location.reload();
-
-
 
     function pushFetchToArray(entry) {
         if (entry !== null && entry.isFile) {
@@ -36,12 +35,9 @@ dropZone.addEventListener('drop', async (event) => {
                 pathToFile = currentPath + '/' + pathToFile;
             }
 
-
             entry.file((file) => {
-                pushUploadFileFetchToArray(file, pathToFile)
+                pushUploadFileFetchToArray(file, pathToFile);
             });
-
-
         }
 
         if (entry !== null && entry.isDirectory) {
@@ -58,16 +54,12 @@ dropZone.addEventListener('drop', async (event) => {
             const newFolderName = parts[parts.length - 1];
             pushCreateFolderFetchToArray(pathToNewFolder, newFolderName);
 
-
-
-
-
-            const dirReader = entry.createReader()
+            const dirReader = entry.createReader();
             dirReader.readEntries((entries) => {
                 entries.forEach((entry) => {
                     pushFetchToArray(entry);
-                })
-            })
+                });
+            });
         }
     }
 
@@ -79,7 +71,10 @@ dropZone.addEventListener('drop', async (event) => {
         const createFolderFetch = fetch(url, {
             method: 'POST',
             body: formData
-        })
+        }).then(() => {
+            completedPromises++;
+            checkAllPromisesCompleted();
+        });
 
         fetchPromises.push(createFolderFetch);
     }
@@ -93,8 +88,16 @@ dropZone.addEventListener('drop', async (event) => {
         const fetchPromise = fetch(url, {
             method: 'POST',
             body: formData
-        })
+        }).then(() => {
+            completedPromises++;
+            checkAllPromisesCompleted();
+        });
         fetchPromises.push(fetchPromise);
     }
 
+    function checkAllPromisesCompleted() {
+        if (completedPromises === fetchPromises.length) {
+            location.reload();
+        }
+    }
 });

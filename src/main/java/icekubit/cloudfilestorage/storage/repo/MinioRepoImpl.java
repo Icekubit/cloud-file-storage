@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public class MinioRepoImpl implements MinioRepo {
                         .bucket(DEFAULT_BUCKET_NAME)
                         .object(path)
                         .stream(
-                                new ByteArrayInputStream(new byte[] {}), 0, -1)
+                                new ByteArrayInputStream(new byte[]{}), 0, -1)
                         .build());
         log.info("The folder '" + path + "' is created");
     }
@@ -61,6 +62,16 @@ public class MinioRepoImpl implements MinioRepo {
                                 file.getInputStream(), -1, 10485760)
                         .build());
         log.info("The file " + destination + " is successfully added to the bucket " + DEFAULT_BUCKET_NAME);
+    }
+
+    @Override
+    @SneakyThrows
+    public InputStream downloadFile(String path) {
+        return minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(DEFAULT_BUCKET_NAME)
+                        .object(path)
+                        .build());
     }
 
     @Override
