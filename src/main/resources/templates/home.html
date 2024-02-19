@@ -1,122 +1,297 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
-      xmlns:sec="http://www.w3.org/1999/xhtml">
+      xmlns:seс="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8"/>
     <title>Cloud File Storage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
     <link th:href="@{/css/home-page-style.css}" rel="stylesheet"
           th:if="${#authorization.expression('isAuthenticated()')}">
     <script th:src="@{js/home-page-script.js}" defer
             th:if="${#authorization.expression('isAuthenticated()')}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" defer integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </head>
     <body>
-        <div>
-            <h1 th:inline="text">Hello <span th:remove="tag" sec:authentication="name">thymeleaf</span>!</h1>
-            <div th:if="${!#authorization.expression('isAuthenticated()')}">
-                <a th:href="@{/login}">Sign in</a>
-                <a th:href="@{/registration}">Sign up</a>
+        <div th:insert="~{fragments/testnav}"></div>
+
+        <div th:if="${#authorization.expression('isAuthenticated()')}">
+
+            <div style="margin-left: 20px; margin-right: 20px; display: flex; justify-content: space-between;">
+                <div>
+                    <a th:href="@{/}">My storage</a>
+                    <span th:if="${!breadCrumbs.isEmpty()}">
+                        <span th:each="breadCrumb, iterStat: ${breadCrumbs}">
+                            <span> -> </span>
+                            <a th:if="${!iterStat.last}" th:href="@{/(path=${#uris.escapePath(breadCrumb.pathForLink)})}" th:text="${breadCrumb.displayName}"></a>
+                            <span th:if="${iterStat.last}" th:text="${breadCrumb.displayName}"></span>
+                        </span>
+                    </span>
+                </div>
+                <div style="display: flex;">
+                    <div style="margin-right: 10px;">
+                        <button type="button" id="createFolderButton" class="btn btn-primary">Create folder</button>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                            Upload
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                            <li><div class="dropdown-item" id="uploadFileMenuItem">Upload file</div></li>
+                            <li><div class="dropdown-item" id="uploadFolderMenuItem">Upload folder</div></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div th:if="${#authorization.expression('isAuthenticated()')}">
-                <form th:action="@{/logout}" method="post">
-                    <input type="submit" value="Log out"/>
-                </form>
+
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone__prompt">Upload files and folders</div>
+                <div class="drop-zone__hint">Drag and drop here</div>
             </div>
+
+
+            <div class="container-fluid">
+                <div class="row row-cols-12 justify-content-start align-items-start">
+                    <div th:each="element : ${listOfItems}" class="folder col">
+                        <div class="text-center">
+                            <img th:if="${element.isDirectory}" class="folder-icon" src="/images/folder.svg" alt="Folder Icon" title="Open this folder" style="width: 50px; height: 50px;">
+                            <img th:unless="${element.isDirectory}" class="file-icon" src="/images/file.svg" alt="Folder Icon" style="width: 50px; height: 50px;">
+                            <p th:text="${element.objectName}" style="margin-top: 5px;"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-        <div>
-            <div th:if="${#authorization.expression('isAuthenticated()')}">
-                <form th:action="@{/search/}" th:method="get" style="display: inline;">
-                    <label> Enter file or folder name : <input type="text" name="query"/></label>
-                    <input type="submit" value="Search"/>
-                </form>
-                <a th:href="@{/}">My disk</a>
-                <span th:if="${!breadCrumbs.isEmpty()}">
-                    <span th:each="breadCrumb, iterStat: ${breadCrumbs}">
-                        <span> -> </span>
-                        <a th:if="${!iterStat.last}" th:href="@{/(path=${#uris.escapePath(breadCrumb.pathForLink)})}" th:text="${breadCrumb.displayName}"></a>
-                        <span th:if="${iterStat.last}" th:text="${breadCrumb.displayName}"></span>
-                    </span>
-                </span>
-                <ul>
-                    <li th:each="element : ${listOfItems}">
-                        <div th:if="${element.isDirectory}">
-                            <a th:href="@{/(path=${#uris.escapePath(element.relativePath)})}"
-                               th:text="'/' + ${element.relativePath}"></a>
-                            <form th:action="@{/folder}" th:method="get">
-                                <input type="hidden" name="pathToFolder" th:value="${element.relativePath}"/>
-                                <input type="submit" value="Download"/>
-                            </form>
-                            <form th:action="@{/file}" th:method="delete" style="display: inline;">
-                                <input type="hidden" name="objectForDeletion" th:value="${element.relativePath}"/>
-                                <input type="hidden" name="currentPath" th:value="${path}"/>
-                                <input type="submit" value="Delete"/>
-                            </form>
-                            <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">
-                                <label> New file name : <input type="text" th:field="*{objectName}"/></label>
-                                <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>
-                                <span th:if="renameValidationErrors">
-                                    <span th:if="${#strings.equals(relativePathToItemWithError, element.relativePath)}">
-                                        <span th:each="error: ${renameValidationErrors}" th:text="${error.defaultMessage}"></span>
-                                    </span>
-                                </span>
-                                <input type="hidden" name="currentPath" th:value="${path}"/>
-                                <input type="submit" value="Rename"/>
-                            </form>
+
+
+<!--            <div th:if="${#authorization.expression('isAuthenticated()')}">-->
+
+<!--                <form th:action="@{/folder}" th:method="post" th:object="${folderForm}">-->
+<!--                    <label> Folder name : <input type="text" th:field="*{objectName}"/></label>-->
+<!--                    <span th:if="${createFolderValidationErrors != null and createFolderValidationErrors.size() > 0}">-->
+<!--                        <span th:text="${createFolderValidationErrors[0].defaultMessage}"></span>-->
+<!--                    </span>-->
+<!--                    <input type="hidden" name="currentPath" th:value="${path}"/>-->
+<!--                    <input type="submit" value="Create folder"/>-->
+<!--                </form>-->
+
+
+<!--                <form th:action="@{/file/upload}" th:method="post" th:object="${uploadFileFormDto}" enctype="multipart/form-data">-->
+<!--                    <label for="file">Choose a file:</label>-->
+<!--                    <input type="file" name="file" />-->
+<!--                    <span th:if="${uploadFileValidationErrors != null and uploadFileValidationErrors.size() > 0}">-->
+<!--                        <span th:text="${uploadFileValidationErrors[0].defaultMessage}"></span>-->
+<!--                    </span>-->
+<!--                    <input type="hidden" name="currentPath" th:value="${path}" />-->
+<!--                    <input type="submit" value="Upload" />-->
+<!--                </form>-->
+
+
+<!--                <form th:action="@{/folder/upload}" th:method="post" th:object="${uploadFolderFormDto}" enctype="multipart/form-data">-->
+<!--                    <label for="files">Choose a folder:</label>-->
+<!--                    <input type="file" id="files" name="files" webkitdirectory multiple/>-->
+<!--                    <span th:if="${uploadFolderValidationErrors != null and uploadFolderValidationErrors.size() > 0}">-->
+<!--                        <span th:text="${uploadFolderValidationErrors[0].defaultMessage}"></span>-->
+<!--                    </span>-->
+<!--                    <input type="hidden" name="currentPath" th:value="${path}" />-->
+<!--                    <input type="submit" value="Upload" />-->
+<!--                </form>-->
+
+
+
+<!--                <ul>-->
+<!--                    <li th:each="element : ${listOfItems}">-->
+<!--                        <div th:if="${element.isDirectory}">-->
+<!--                            <a th:href="@{/(path=${#uris.escapePath(element.relativePath)})}"-->
+<!--                               th:text="'/' + ${element.relativePath}"></a>-->
+<!--                            <form th:action="@{/folder}" th:method="get">-->
+<!--                                <input type="hidden" name="pathToFolder" th:value="${element.relativePath}"/>-->
+<!--                                <input type="submit" value="Download"/>-->
+<!--                            </form>-->
+<!--                            <form th:action="@{/file}" th:method="delete" style="display: inline;">-->
+<!--                                <input type="hidden" name="objectName" th:value="${element.objectName}"/>-->
+<!--                                <input type="hidden" name="currentPath" th:value="${path}"/>-->
+<!--                                <input type="submit" value="Delete"/>-->
+<!--                            </form>-->
+<!--                            <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">-->
+<!--                                <label> New file name : <input type="text" th:field="*{objectName}"/></label>-->
+<!--                                <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>-->
+<!--                                <span th:if="renameValidationErrors">-->
+<!--                                    <span th:if="${#strings.equals(relativePathToItemWithError, element.relativePath)}">-->
+<!--                                        <span th:each="error: ${renameValidationErrors}" th:text="${error.defaultMessage}"></span>-->
+<!--                                    </span>-->
+<!--                                </span>-->
+<!--                                <input type="hidden" name="currentPath" th:value="${path}"/>-->
+<!--                                <input type="submit" value="Rename"/>-->
+<!--                            </form>-->
+<!--                        </div>-->
+<!--                        <div th:if="${!element.isDirectory}">-->
+<!--                            <span th:text="'/' + ${element.relativePath}"></span>-->
+<!--                            <form th:action="@{/file}" th:method="get">-->
+<!--                                <input type="hidden" name="pathToFile" th:value="${element.relativePath}"/>-->
+<!--                                <input type="submit" value="Download"/>-->
+<!--                            </form>-->
+<!--                            <form th:action="@{/file}" th:method="delete" style="display: inline;">-->
+<!--                                <input type="hidden" name="objectName" th:value="${element.objectName}"/>-->
+<!--                                <input type="hidden" name="currentPath" th:value="${path}"/>-->
+<!--                                <input type="submit" value="Delete"/>-->
+<!--                            </form>-->
+<!--                            <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">-->
+<!--                                <label> New file name : <input type="text" th:field="*{objectName}"/></label>-->
+<!--                                <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>-->
+<!--                                <span th:if="${renameValidationErrors != null and renameValidationErrors.size() > 0}">-->
+<!--                                    <span th:if="${#strings.equals(relativePathToItemWithError, element.relativePath)}">-->
+<!--                                        <span th:text="${renameValidationErrors[0].defaultMessage}"></span>-->
+<!--                                    </span>-->
+<!--                                </span>-->
+<!--                                <input type="hidden" name="currentPath" th:value="${path}"/>-->
+<!--                                <input type="submit" value="Rename"/>-->
+<!--                            </form>-->
+<!--                        </div>-->
+<!--                    </li>-->
+<!--                </ul>-->
+<!--            </div>-->
+
+
+            <div class="modal" id="createFolderModal">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Create folder</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div th:if="${!element.isDirectory}">
-                            <span th:text="'/' + ${element.relativePath}"></span>
-                            <form th:action="@{/file}" th:method="get">
-                                <input type="hidden" name="pathToFile" th:value="${element.relativePath}"/>
-                                <input type="submit" value="Download"/>
-                            </form>
-                            <form th:action="@{/file}" th:method="delete" style="display: inline;">
-                                <input type="hidden" name="objectForDeletion" th:value="${element.relativePath}"/>
-                                <input type="hidden" name="currentPath" th:value="${path}"/>
-                                <input type="submit" value="Delete"/>
-                            </form>
-                            <form th:action="@{/file}" th:method="put" th:object="${renameFormDto}" style="display: inline;">
-                                <label> New file name : <input type="text" th:field="*{objectName}"/></label>
-                                <input type="hidden" name="relativePathToObject" th:value="${element.relativePath}"/>
-                                <span th:if="${renameValidationErrors != null and renameValidationErrors.size() > 0}">
-                                    <span th:if="${#strings.equals(relativePathToItemWithError, element.relativePath)}">
-                                        <span th:text="${renameValidationErrors[0].defaultMessage}"></span>
-                                    </span>
-                                </span>
-                                <input type="hidden" name="currentPath" th:value="${path}"/>
-                                <input type="submit" value="Rename"/>
-                            </form>
+                        <div class="modal-body">
+                            <input type="text" class="form-control" id="createFolderInput" placeholder="Enter new folder name">
                         </div>
-                    </li>
-                </ul>
-                <form th:action="@{/folder}" th:method="post" th:object="${folderForm}">
-                    <label> Folder name : <input type="text" th:field="*{objectName}"/></label>
-                    <span th:if="${createFolderValidationErrors != null and createFolderValidationErrors.size() > 0}">
-                        <span th:text="${createFolderValidationErrors[0].defaultMessage}"></span>
-                    </span>
-                    <input type="hidden" name="currentPath" th:value="${path}"/>
-                    <input type="submit" value="Create folder"/>
-                </form>
-                <form th:action="@{/file/upload}" th:method="post" th:object="${uploadFileFormDto}" enctype="multipart/form-data">
-                    <label for="file">Choose a file:</label>
-                    <input type="file" id="file" name="file" />
-                    <span th:if="${uploadFileValidationErrors != null and uploadFileValidationErrors.size() > 0}">
-                        <span th:text="${uploadFileValidationErrors[0].defaultMessage}"></span>
-                    </span>
-                    <input type="hidden" name="currentPath" th:value="${path}" />
-                    <input type="submit" value="Upload" />
-                </form>
-                <form th:action="@{/folder/upload}" th:method="post" th:object="${uploadFolderFormDto}" enctype="multipart/form-data">
-                    <label for="files">Choose a folder:</label>
-                    <input type="file" id="files" name="files" webkitdirectory multiple/>
-                    <span th:if="${uploadFolderValidationErrors != null and uploadFolderValidationErrors.size() > 0}">
-                        <span th:text="${uploadFolderValidationErrors[0].defaultMessage}"></span>
-                    </span>
-                    <input type="hidden" name="currentPath" th:value="${path}" />
-                    <input type="submit" value="Upload" />
-                </form>
-                <div class="drop-zone" id="dropZone">
-                    <div class="drop-zone__prompt">Drop files and folders here</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="createFolderSubmitButton">Create</button>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <form id="createFolderForm" th:action="@{/folder}" th:method="post" style="display: none;">
+                <input type="text" name="objectName"/>
+                <input type="hidden" name="currentPath" th:value="${path}"/>
+                <input type="submit" value="Create folder"/>
+            </form>
+
+            <form id="uploadFileForm" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data" style="display: none;">
+                <input type="file" id="fileInput" name="file" />
+                <input type="hidden" name="currentPath" th:value="${path}" />
+            </form>
+
+            <div class="modal" id="uploadFileModal">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Upload file</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>You are going to download this file</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="uploadFileSubmitButton">Upload</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <form id="uploadFolderForm" th:action="@{/folder/upload}" th:method="post" enctype="multipart/form-data" style="display: none;">
+                <input type="file" id="folderInput" name="files" webkitdirectory multiple/>
+                <input type="hidden" name="currentPath" th:value="${path}" />
+                <input type="submit" value="Upload" />
+            </form>
+
+
+            <div id="customContextMenu" style="display: none; position: absolute; background-color: #fff; border: 1px solid #ccc; padding: 5px;">
+                <div id="contextMenuDownload" class="context-menu-item">Download</div>
+                <div id="contextMenuRename" class="context-menu-item" data-bs-toggle="modal" data-bs-target="#rename-modal">Rename</div>
+                <div id="contextMenuDelete" class="context-menu-item">Delete</div>
+            </div>
+
+            <form id="downloadFolderForm" th:action="@{/folder}" th:method="get" style="display: none;">
+                <input type="hidden" name="pathToFolder"/>
+                <input type="submit" value="Download"/>
+            </form>
+
+            <form id="downloadFileForm" th:action="@{/file}" th:method="get" style="display: none;">
+                <input type="hidden" name="pathToFile"/>
+            </form>
+
+
+            <div class="modal" id="rename-modal">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Rename</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="text" class="form-control" id="renameInput" placeholder="Enter new name">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="renameButton">Rename</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form id="renameForm" th:action="@{/file}" th:method="put" style="display: none;">
+                <input type="hidden" name="objectName"/>
+                <input type="hidden" name="relativePathToObject"/>
+                <input type="hidden" name="currentPath"/>
+            </form>
+
+            <form id="deleteForm" th:action="@{/file}" th:method="delete" style="display: none;">
+                <input type="hidden" name="objectName"/>
+                <input type="hidden" name="currentPath"/>
+            </form>
+
+
+
+            <div class="toast-container position-absolute top-0 start-50 translate-middle-x" id="toastPlacement">
+                <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">X-Files</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body" id="toastBody">
+                        Hello, world! This is a toast message.
+                    </div>
+                </div>
+            </div>
+
+        <div th:if="${createFolderValidationErrors != null and createFolderValidationErrors.size() > 0}">
+                        <div class="validation-message" th:text="${createFolderValidationErrors[0].defaultMessage}"></div>
         </div>
+
+        <div th:if="${uploadFileValidationErrors != null and uploadFileValidationErrors.size() > 0}">
+                        <div class="validation-message" th:text="${uploadFileValidationErrors[0].defaultMessage}"></div>
+        </div>
+
+        <div th:if="${uploadFolderValidationErrors != null and uploadFolderValidationErrors.size() > 0}">
+                        <div class="validation-message" th:text="${uploadFolderValidationErrors[0].defaultMessage}"></div>
+        </div>
+
+        <div th:if="${renameValidationErrors != null and renameValidationErrors.size() > 0}">
+            <div class="validation-message" th:text="${renameValidationErrors[0].defaultMessage}"></div>
+        </div>
+
+        <div th:if="${deletedFileError}">
+            <div class="validation-message" th:text="${deletedFileError}"></div>
+        </div>
+
+
+
     </body>
 </html>

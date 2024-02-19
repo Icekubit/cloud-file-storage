@@ -7,4 +7,5 @@ public class MinioItemDto {
     Boolean isDirectory;
     String relativePath;
     String relativePathToParentFolder;
+    String objectName;
 }

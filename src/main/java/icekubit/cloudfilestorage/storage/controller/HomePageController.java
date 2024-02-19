@@ -60,7 +60,7 @@ public class HomePageController {
             }
             var listOfItems = minioService.getListOfItems(userId, path)
                     .stream()
-                    .map(minioMapper::convertItemDoDto)
+                    .map(minioMapper::convertItemToDto)
                     .collect(Collectors.toList());
             model.addAttribute("path", path);
             model.addAttribute("listOfItems", listOfItems);

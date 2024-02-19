@@ -1,0 +1,30 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">X-Files</a>
+        <div class="navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0" style="white-space: nowrap;">
+                <li sec:authorize="isAuthenticated()" class="nav-item d-none d-lg-block">
+                    <a class="nav-link active" aria-current="page" href="/">Home</a>
+                </li>
+                <li sec:authorize="!isAuthenticated()" class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="login" style="white-space: nowrap;">Log in</a>
+                </li>
+                <li sec:authorize="!isAuthenticated()" class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="registration" style="white-space: nowrap;">Sign up</a>
+                </li>
+            </ul>
+            <div class="d-flex justify-content-center w-100">
+                <h1 sec:authorize="isAuthenticated()">Hello <span sec:authentication="name">thymeleaf</span>!</h1>
+            </div>
+            <form sec:authorize="isAuthenticated()" th:action="@{/search/}" th:method="get" class="d-flex">
+                <input class="form-control me-2" type="search" name="query" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0" style="white-space: nowrap;">
+                <li sec:authorize="isAuthenticated()" class="nav-item d-none d-lg-block">
+                    <a id="logout" class="nav-link active" aria-current="page" href="/logout">Log out</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

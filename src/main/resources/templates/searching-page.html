@@ -1,31 +1,29 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
-      xmlns:sec="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <title>Searching page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+          rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+          crossorigin="anonymous">
+    <script th:src="@{/js/searching-page-script.js}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" defer integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </head>
     <body>
+        <div th:insert="~{fragments/testnav}"></div>
+        <p th:unless="${foundItems.isEmpty()}" style="margin-left: 20px;">Search results for "<span th:text="${queryParam}"></span>":</p>
+        <p th:if="${foundItems.isEmpty()}" style="margin-left: 20px;">No results for  "<span th:text="${queryParam}">"</span></p>
         <div>
-            <h1 th:inline="text">Hello <span th:remove="tag" sec:authentication="name">thymeleaf</span>!</h1>
-            <form th:action="@{/logout}" method="post">
-                <input type="submit" value="Log out"/>
-            </form>
-        </div>
-        <div>
-            <form th:action="@{/search/}" th:method="get" style="display: inline;">
-                <label> Enter file or folder name : <input type="text" name="query"/></label>
-                <input type="submit" value="Search"/>
-            </form>
             <ul>
                 <li th:each="item : ${foundItems}">
                     <div th:if="${item.isDirectory}">
                         <a th:href="@{/(path=${#uris.escapePath(item.relativePath)})}"
-                           th:text="${'/' + item.relativePath}"></a>
+                           th:text="${item.objectName}"></a>
                     </div>
-                    <div th:if="${!item.isDirectory}">
-                        <span th:text="${'/' + item.relativePath}"></span>
-                        <a th:href="@{/(path=${#uris.escapePath(item.relativePathToParentFolder)})}">go to parent folder</a>
+                    <div th:unless="${item.isDirectory}">
+                        <span th:text="${item.objectName}"></span>
+                        <a th:if="${item.relativePathToParentFolder.equals('/')}" th:href="@{/}">go to parent folder</a>
+                        <a th:unless="${item.relativePathToParentFolder.equals('/')}" th:href="@{'/?path=' + ${item.relativePathToParentFolder}}">go to parent folder</a>
                     </div>
                 </li>
             </ul>

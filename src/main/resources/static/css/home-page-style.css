@@ -1,24 +1,45 @@
+.dropdown-item:hover {
+    cursor: pointer;
+}
+
 .drop-zone {
-    background-color: #f0f0f0;
     border: 2px dashed #aaaaaa;
     border-radius: 10px;
     padding: 20px;
     text-align: center;
     margin: 50px auto;
-    width: 300px;
+    width: 90vw;
+    height: 10vh;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .drop-zone.drop-zone--over {
-    background-color: #e0e0e0; /* Изменение цвета фона при наведении */
+    background-color: #e0e0e0;
 }
 
 .drop-zone__prompt {
     font-size: 18px;
-    color: #333333;
+}
+
+.drop-zone__hint {
+    font-size: 12px;
+    margin-top: 5px;
 }
 
 .drop-zone__input {
+    display: none;
+}
+
+.folder-icon:hover {
+    cursor: pointer;
+}
+
+.context-menu-item:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+.validation-message {
     display: none;
 }

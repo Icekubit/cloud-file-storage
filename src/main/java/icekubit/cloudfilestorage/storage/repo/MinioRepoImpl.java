@@ -1,6 +1,7 @@
 package icekubit.cloudfilestorage.storage.repo;
 
 import io.minio.*;
+import io.minio.errors.*;
 import io.minio.messages.Item;
 import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
@@ -9,8 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,6 +77,7 @@ public class MinioRepoImpl implements MinioRepo {
                         .bucket(DEFAULT_BUCKET_NAME)
                         .object(path)
                         .build());
+
     }
 
     @Override
@@ -137,6 +143,22 @@ public class MinioRepoImpl implements MinioRepo {
     @Override
     @SneakyThrows
     public Boolean doesFolderExist(String path) {
+        Iterable<Result<Item>> results = minioClient.listObjects(
+                ListObjectsArgs.builder()
+                        .bucket(DEFAULT_BUCKET_NAME)
+                        .prefix(path)
+                        .build());
+        for (Result<Item> result: results) {
+            if (result.get().objectName().startsWith(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    @SneakyThrows
+    public Boolean doesFileExist(String path) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(DEFAULT_BUCKET_NAME)

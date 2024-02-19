@@ -3,13 +3,15 @@ package icekubit.cloudfilestorage.storage.mapper;
 import icekubit.cloudfilestorage.storage.dto.MinioItemDto;
 import io.minio.messages.Item;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Component
 public class MinioMapper {
-    public MinioItemDto convertItemDoDto(Item item) {
+    public MinioItemDto convertItemToDto(Item item) {
         MinioItemDto minioItemDto = new MinioItemDto();
         minioItemDto.setIsDirectory(item.isDir());
 
@@ -28,8 +30,12 @@ public class MinioMapper {
         if (relativePathToParentFolder == null) {
             minioItemDto.setRelativePathToParentFolder("/");
         } else {
-            minioItemDto.setRelativePathToParentFolder(relativePathToParentFolder.toString());
+            String urlEncodedRelativePathToParentFolder
+                    = UriUtils.encode(relativePathToParentFolder.toString(), StandardCharsets.UTF_8);
+            minioItemDto.setRelativePathToParentFolder(urlEncodedRelativePathToParentFolder);
         }
+
+        minioItemDto.setObjectName(path.getFileName().toString());
 
         return minioItemDto;
     }

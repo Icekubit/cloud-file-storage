@@ -15,6 +15,7 @@ public interface MinioRepo {
     void removeObject(String path);
     void renameObject(String path, String newObjectName);
     Boolean doesFolderExist(String path);
+    Boolean doesFileExist(String path);
     List<Item> getListOfItems(String path);
     List<Item> getListOfItemsRecursively(String path);
 }

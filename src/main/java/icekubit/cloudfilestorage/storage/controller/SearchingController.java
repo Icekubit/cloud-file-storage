@@ -27,10 +27,11 @@ public class SearchingController {
                                Model model) {
         Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
 
+        model.addAttribute("queryParam", query);
         model.addAttribute("foundItems",
                 minioService.searchObjects(userId, query)
                         .stream()
-                        .map(minioMapper::convertItemDoDto)
+                        .map(minioMapper::convertItemToDto)
                         .collect(Collectors.toList()));
 
 

@@ -1,0 +1,21 @@
+<div class="container" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <h1 sec:authorize="isAuthenticated()" class="d-flex align-items-center mb-3 mb-sm-0 me-sm-auto text-dark text-decoration-none">
+            <span th:inline="text">
+                Hello <span sec:authentication="name">thymeleaf</span>!
+            </span>
+        </h1>
+        <ul class="nav nav-pills">
+            <li sec:authorize="isAuthenticated()" class="nav-item">
+                <a href="/" class="nav-link">Home</a>
+            </li>
+            <li sec:authorize="isAuthenticated()" class="nav-item">
+                <form action="logout" method="POST">
+                    <button type="submit" class="nav-link">Log out</button>
+                </form>
+            </li>
+            <li sec:authorize="!isAuthenticated()" class="nav-item"><a href="/registration" class="nav-link">Sign up</a></li>
+            <li sec:authorize="!isAuthenticated()" class="nav-item"><a href="/login" class="nav-link">Sign in</a></li>
+        </ul>
+    </header>
+</div>

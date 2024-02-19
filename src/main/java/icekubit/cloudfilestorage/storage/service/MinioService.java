@@ -72,9 +72,7 @@ public class MinioService {
                     zos.closeArchiveEntry();
                 }
             }
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        }  catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -82,6 +80,11 @@ public class MinioService {
     public boolean doesFolderExist(Integer userId, String path) {
         String minioPathToFolder = getMinioPathToObject(userId, path) + "/";
         return minioRepo.doesFolderExist(minioPathToFolder);
+    }
+
+    public boolean doesFileExist(Integer userId, String path) {
+        String minioPathToFile = getMinioPathToObject(userId, path);
+        return minioRepo.doesFileExist(minioPathToFile);
     }
 
     public List<Item> getListOfItems(Integer userId, String path) {
