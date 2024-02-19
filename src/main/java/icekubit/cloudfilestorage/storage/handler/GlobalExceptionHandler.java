@@ -10,12 +10,19 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-
-
     @ExceptionHandler(ResourceDoesNotExistException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleNotFoundException(ResourceDoesNotExistException exception) {
         log.error("Exception was thrown: " + exception.getMessage());
         return "error/404";
     }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public String handleGenericException(Exception exception) {
+        log.error("Exception was thrown: " + exception.getMessage());
+        return "error/500";
+    }
+
+
 }

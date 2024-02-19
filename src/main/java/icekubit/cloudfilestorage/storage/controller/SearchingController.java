@@ -3,7 +3,6 @@ package icekubit.cloudfilestorage.storage.controller;
 import icekubit.cloudfilestorage.storage.mapper.MinioMapper;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
