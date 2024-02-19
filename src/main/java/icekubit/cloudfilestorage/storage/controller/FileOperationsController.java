@@ -7,11 +7,13 @@ import icekubit.cloudfilestorage.storage.dto.UploadFolderFormDto;
 import icekubit.cloudfilestorage.storage.exception.ResourceDoesNotExistException;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,13 +26,8 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Controller
@@ -72,7 +69,8 @@ public class FileOperationsController {
     }
 
     @GetMapping("/folder")
-    public ResponseEntity<ByteArrayResource> downloadFolder(@RequestParam String pathToFolder,
+    public void downloadFolder(@RequestParam String pathToFolder,
+                                                            HttpServletResponse httpServletResponse,
                                                             Authentication authentication) {
         Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
 
@@ -83,33 +81,17 @@ public class FileOperationsController {
 
         String zipArchiveName = Paths.get(pathToFolder).getFileName() + ".zip";
 
-        minioService.saveFolderAsZip(userId, pathToFolder);
+        String encodedZipArchiveName = UriUtils.encode(zipArchiveName, StandardCharsets.UTF_8);
+        httpServletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                "attachment; filename=\"" + encodedZipArchiveName + "\"");
 
-
-
-        ByteArrayResource byteArrayResource;
-        try (InputStream inputStream = new FileInputStream(zipArchiveName)){
-            byteArrayResource = new ByteArrayResource(inputStream.readAllBytes());
+        try {
+            minioService.downloadFolderAsZip(userId, pathToFolder, httpServletResponse.getOutputStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        File zipFile = new File(zipArchiveName);
-        if (zipFile.exists()) {
-            zipFile.delete();
-        }
 
-
-        HttpHeaders headers = new HttpHeaders();
-
-        String encodedZipArchiveName = UriUtils.encode(zipArchiveName, StandardCharsets.UTF_8);
-        headers.add(HttpHeaders.CONTENT_DISPOSITION
-                , "attachment; filename=\"" + encodedZipArchiveName + "\"");
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(byteArrayResource);
     }
 
     @PostMapping("/file/upload")

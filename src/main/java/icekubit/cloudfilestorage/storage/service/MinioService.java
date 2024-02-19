@@ -43,14 +43,11 @@ public class MinioService {
         return minioRepo.downloadFile(minioPathToFile);
     }
 
-    public void saveFolderAsZip(Integer userId, String path) {
+    public void downloadFolderAsZip(Integer userId, String path, OutputStream outputStream) {
         String minioPathToFolder = getMinioPathToObject(userId, path);
 
-        String zipFileName = Paths.get(path).getFileName().toString();
-
-
         try (ZipArchiveOutputStream zos
-                     = new ZipArchiveOutputStream(new FileOutputStream(zipFileName + ".zip"))) {
+                     = new ZipArchiveOutputStream(outputStream)) {
             zos.setEncoding("Cp437");
             zos.setFallbackToUTF8(true);
             zos.setUseLanguageEncodingFlag(true);
@@ -68,7 +65,6 @@ public class MinioService {
                     try (InputStream inputStream = minioRepo.downloadFile(item.objectName())) {
                         IOUtils.copy(inputStream, zos);
                     }
-
                     zos.closeArchiveEntry();
                 }
             }
@@ -76,6 +72,8 @@ public class MinioService {
             throw new RuntimeException(e);
         }
     }
+
+
 
     public boolean doesFolderExist(Integer userId, String path) {
         String minioPathToFolder = getMinioPathToObject(userId, path) + "/";
