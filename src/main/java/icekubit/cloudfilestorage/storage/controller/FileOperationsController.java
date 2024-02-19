@@ -7,8 +7,6 @@ import icekubit.cloudfilestorage.storage.dto.UploadFolderFormDto;
 import icekubit.cloudfilestorage.storage.exception.ResourceDoesNotExistException;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.core.io.ByteArrayResource;
@@ -113,6 +111,7 @@ public class FileOperationsController {
         minioService.uploadMultipartFile(userId, path, file);
         return buildRedirectView(path);
     }
+
     @PostMapping("/folder/upload")
     public RedirectView uploadFolder(@Valid UploadFolderFormDto uploadFolderFormDto,
                                BindingResult bindingResult,
