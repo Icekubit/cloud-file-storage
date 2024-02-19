@@ -4,6 +4,7 @@ import icekubit.cloudfilestorage.storage.mapper.MinioMapper;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,10 +23,10 @@ public class SearchingController {
     }
 
     @GetMapping("/search/")
-    public String showHomePage(Authentication authentication,
-                               @RequestParam String query,
-                               Model model) {
-        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+    public String showHomePage(@RequestParam String query,
+                               Model model,
+                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
 
         model.addAttribute("queryParam", query);
         model.addAttribute("foundItems",

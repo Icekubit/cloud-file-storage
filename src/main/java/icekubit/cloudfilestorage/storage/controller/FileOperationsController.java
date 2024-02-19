@@ -14,7 +14,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -38,8 +38,8 @@ public class FileOperationsController {
 
     @GetMapping("/file")
     public ResponseEntity<Resource> downloadFile(@RequestParam String pathToFile,
-                             Authentication authentication) {
-        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
 
         if (!minioService.doesFileExist(userId, pathToFile)) {
             throw new ResourceDoesNotExistException("Failed to download the file on the path " + pathToFile +
@@ -69,8 +69,8 @@ public class FileOperationsController {
     @GetMapping("/folder")
     public void downloadFolder(@RequestParam String pathToFolder,
                                                             HttpServletResponse httpServletResponse,
-                                                            Authentication authentication) {
-        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+                               @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
 
         if (!minioService.doesFolderExist(userId, pathToFolder)) {
             throw new ResourceDoesNotExistException("Failed to download the folder on the path " + pathToFolder +
@@ -96,8 +96,8 @@ public class FileOperationsController {
     public RedirectView uploadFile(@Valid UploadFileFormDto uploadFileFormDto,
                                    BindingResult bindingResult,
                                    RedirectAttributes redirectAttributes,
-                                   Authentication authentication) {
-        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
 
         String path = uploadFileFormDto.getCurrentPath();
         MultipartFile file = uploadFileFormDto.getFile();
@@ -116,8 +116,8 @@ public class FileOperationsController {
     public RedirectView uploadFolder(@Valid UploadFolderFormDto uploadFolderFormDto,
                                BindingResult bindingResult,
                                RedirectAttributes redirectAttributes,
-                               Authentication authentication) {
-        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
 
         MultipartFile[] files = uploadFolderFormDto.getFiles();
         String path = uploadFolderFormDto.getCurrentPath();
@@ -141,8 +141,8 @@ public class FileOperationsController {
     public RedirectView createFolder(@Valid CreateFolderFormDto folderForm,
                                      BindingResult bindingResult,
                                      RedirectAttributes redirectAttributes,
-                                     Authentication authentication) {
-        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
         String path = folderForm.getCurrentPath();
 
         if (bindingResult.hasErrors()) {
@@ -160,8 +160,8 @@ public class FileOperationsController {
     @DeleteMapping("/file")
     public RedirectView removeObject(@RequestParam String objectName,
                                      @RequestParam String currentPath,
-                                     Authentication authentication) {
-        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
         String pathToObject = currentPath.isBlank() ? objectName : currentPath + "/" + objectName;
         minioService.removeObject(userId, pathToObject);
         return buildRedirectView(currentPath);
@@ -172,8 +172,8 @@ public class FileOperationsController {
     public RedirectView renameObject(@Valid RenameFormDto renameFormDto,
                                BindingResult bindingResult,
                                RedirectAttributes redirectAttributes,
-                               Authentication authentication) {
-        Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer userId = userDetails.getUserId();
 
         String relativePathToObject = renameFormDto.getRelativePathToObject();
         String path = renameFormDto.getCurrentPath();
