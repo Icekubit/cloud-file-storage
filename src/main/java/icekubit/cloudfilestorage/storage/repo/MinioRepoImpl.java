@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -31,68 +30,91 @@ public class MinioRepoImpl implements MinioRepo {
     }
 
     @PostConstruct
-    @SneakyThrows
     private void createDefaultBucket() {
-        boolean found =
-                minioClient.bucketExists(BucketExistsArgs.builder().bucket(DEFAULT_BUCKET_NAME).build());
-        if (!found) {
+        try {
             minioClient.makeBucket(MakeBucketArgs.builder().bucket(DEFAULT_BUCKET_NAME).build());
             log.info("Bucket '" + DEFAULT_BUCKET_NAME + "' was created");
-        } else {
-            log.info("Can't create bucket '" + DEFAULT_BUCKET_NAME + "' because bucket with this name already exists");
+        } catch (ErrorResponseException e) {
+            log.error("Can't create bucket '" + DEFAULT_BUCKET_NAME + "' because bucket with this name already exists");
+        } catch (InsufficientDataException | InternalException | InvalidKeyException | InvalidResponseException
+                 | IOException | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+            log.error("The exception was caught: " + e.getMessage());
+        }
+
+    }
+
+    @Override
+    public void createFolder(String path) {
+        try {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .object(path)
+                            .stream(
+                                    new ByteArrayInputStream(new byte[]{}), 0, -1)
+                            .build());
+            log.info("The folder '" + path + "' is created");
+        } catch (ErrorResponseException | InsufficientDataException | InternalException
+                 | InvalidKeyException | InvalidResponseException | IOException
+                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+                log.error("The exception was caught: " + e.getMessage());
         }
     }
 
     @Override
-    @SneakyThrows
-    public void createFolder(String path) {
-        minioClient.putObject(
-                PutObjectArgs.builder()
-                        .bucket(DEFAULT_BUCKET_NAME)
-                        .object(path)
-                        .stream(
-                                new ByteArrayInputStream(new byte[]{}), 0, -1)
-                        .build());
-        log.info("The folder '" + path + "' is created");
-    }
-
-    @Override
-    @SneakyThrows
     public void uploadFile(MultipartFile file, String destination) {
-        minioClient.putObject(
-                PutObjectArgs.builder()
-                        .bucket(DEFAULT_BUCKET_NAME)
-                        .object(destination)
-                        .stream(
-                                file.getInputStream(), -1, 10485760)
-                        .build());
-        log.info("The file " + destination + " is successfully added to the bucket " + DEFAULT_BUCKET_NAME);
+        try {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .object(destination)
+                            .stream(
+                                    file.getInputStream(), -1, 10485760)
+                            .build());
+            log.info("The file " + destination + " is successfully added to the bucket " + DEFAULT_BUCKET_NAME);
+        } catch (ErrorResponseException | InsufficientDataException | InternalException
+                 | InvalidKeyException | InvalidResponseException | IOException
+                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+            log.error("The exception was caught: " + e.getMessage());
+        }
+
     }
 
     @Override
-    @SneakyThrows
     public InputStream downloadFile(String path) {
-        return minioClient.getObject(
-                GetObjectArgs.builder()
-                        .bucket(DEFAULT_BUCKET_NAME)
-                        .object(path)
-                        .build());
-
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .object(path)
+                            .build());
+        } catch (ErrorResponseException | InsufficientDataException | InternalException
+                 | InvalidKeyException | InvalidResponseException | IOException
+                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+            log.error("The exception was caught: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
-    @SneakyThrows
     public void copyFile(String source, String destination) {
-        minioClient.copyObject(
-                CopyObjectArgs.builder()
-                        .bucket(DEFAULT_BUCKET_NAME)
-                        .object(destination)
-                        .source(
-                                CopySource.builder()
-                                        .bucket(DEFAULT_BUCKET_NAME)
-                                        .object(source)
-                                        .build())
-                        .build());
+        try {
+            minioClient.copyObject(
+                    CopyObjectArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .object(destination)
+                            .source(
+                                    CopySource.builder()
+                                            .bucket(DEFAULT_BUCKET_NAME)
+                                            .object(source)
+                                            .build())
+                            .build());
+        } catch (ErrorResponseException | InsufficientDataException | InternalException
+                 | InvalidKeyException | InvalidResponseException | IOException
+                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+            log.error("The exception was caught: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
@@ -111,7 +133,6 @@ public class MinioRepoImpl implements MinioRepo {
     }
 
     @Override
-    @SneakyThrows
     public void removeObject(String path) {
         if (path.endsWith("/")) {
             List<Item> listOfItems = getListOfItems(path);
@@ -119,12 +140,19 @@ public class MinioRepoImpl implements MinioRepo {
                 removeObject(item.objectName());
             }
         }
-        minioClient.removeObject(
-                RemoveObjectArgs.builder()
-                        .bucket(DEFAULT_BUCKET_NAME)
-                        .object(path)
-                        .build());
-        log.info("The object " + path + " is removed successfully");
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .object(path)
+                            .build());
+            log.info("The object " + path + " is removed successfully");
+        } catch (ErrorResponseException | InsufficientDataException | InternalException
+                 | InvalidKeyException | InvalidResponseException | IOException
+                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+            log.error("The exception was caught: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
@@ -141,39 +169,50 @@ public class MinioRepoImpl implements MinioRepo {
     }
 
     @Override
-    @SneakyThrows
     public Boolean doesFolderExist(String path) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(DEFAULT_BUCKET_NAME)
                         .prefix(path)
                         .build());
-        for (Result<Item> result: results) {
-            if (result.get().objectName().startsWith(path)) {
-                return true;
+        try {
+            for (Result<Item> result : results) {
+                if (result.get().objectName().startsWith(path)) {
+                    return true;
+                }
             }
+        } catch (ErrorResponseException | InsufficientDataException | InternalException
+                 | InvalidKeyException | InvalidResponseException | IOException
+                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+            log.error("The exception was caught: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
         return false;
     }
 
     @Override
-    @SneakyThrows
     public Boolean doesFileExist(String path) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(DEFAULT_BUCKET_NAME)
                         .prefix(path)
                         .build());
-        for (Result<Item> result: results) {
-            if (result.get().objectName().startsWith(path)) {
-                return true;
+        try {
+            for (Result<Item> result : results) {
+                if (result.get().objectName().startsWith(path)) {
+                    return true;
+                }
             }
+        } catch (ErrorResponseException | InsufficientDataException | InternalException
+                 | InvalidKeyException | InvalidResponseException | IOException
+                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+            log.error("The exception was caught: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
         return false;
     }
 
     @Override
-    @SneakyThrows
     public List<Item> getListOfItems(String path) {
         var results = minioClient.listObjects(
                 ListObjectsArgs.builder()
@@ -181,10 +220,17 @@ public class MinioRepoImpl implements MinioRepo {
                         .prefix(path)
                         .build());
         List<Item> listOfItemsExcludingParentFolder = new ArrayList<>();
-        for (Result<Item> result: results) {
-            if (result.get().objectName().equals(path))
-                continue;
-            listOfItemsExcludingParentFolder.add(result.get());
+        try {
+            for (Result<Item> result : results) {
+                if (result.get().objectName().equals(path))
+                    continue;
+                listOfItemsExcludingParentFolder.add(result.get());
+            }
+        } catch (ErrorResponseException | InsufficientDataException | InternalException
+                 | InvalidKeyException | InvalidResponseException | IOException
+                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+            log.error("The exception was caught: " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
         return listOfItemsExcludingParentFolder;
     }

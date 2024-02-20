@@ -62,7 +62,7 @@ public class RegistrationController {
             log.info("Exception: " + e);
             return "registration";
         }
-
+        log.info("The user " + userDto + " was registered");
         loginAfterRegistration(request, response, userDto);
         return "redirect:/";
     }

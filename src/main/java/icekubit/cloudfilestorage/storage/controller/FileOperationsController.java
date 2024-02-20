@@ -9,6 +9,7 @@ import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 @Controller
+@Slf4j
 public class FileOperationsController {
     private final MinioService minioService;
 
@@ -42,8 +44,8 @@ public class FileOperationsController {
         Integer userId = userDetails.getUserId();
 
         if (!minioService.doesFileExist(userId, pathToFile)) {
-            throw new ResourceDoesNotExistException("Failed to download the file on the path " + pathToFile +
-                    " because this file doesn't exist");
+            throw new ResourceDoesNotExistException("Failed to download the file on the path \"" + pathToFile +
+                    "\" because this file doesn't exist");
         }
 
         ByteArrayResource byteArrayResource;
@@ -59,6 +61,8 @@ public class FileOperationsController {
         String fileName = Paths.get(pathToFile).getFileName().toString();
         String encodedFileName = UriUtils.encode(fileName, StandardCharsets.UTF_8);
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFileName + "\"");
+
+        log.info("The file " + pathToFile + " was downloaded by user " + userDetails.getUsername());
 
         return ResponseEntity.ok()
                 .headers(headers)
@@ -85,6 +89,7 @@ public class FileOperationsController {
 
         try {
             minioService.downloadFolderAsZip(userId, pathToFolder, httpServletResponse.getOutputStream());
+            log.info("The folder " + pathToFolder + " was downloaded by user " + userDetails.getUsername());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -109,6 +114,8 @@ public class FileOperationsController {
         }
 
         minioService.uploadMultipartFile(userId, path, file);
+        log.info("The file " + file.getOriginalFilename()
+                + " was uploaded to the path \"" + path + "\" by user " + userDetails.getUsername());
         return buildRedirectView(path);
     }
 
@@ -132,6 +139,8 @@ public class FileOperationsController {
         for (MultipartFile file: files) {
             minioService.uploadMultipartFile(userId, path, file);
         }
+        log.info("The folder " + files[0].getOriginalFilename()
+                + " was uploaded to the path \"" + path + "\" by user " + userDetails.getUsername());
         return buildRedirectView(path);
     }
 
@@ -144,6 +153,7 @@ public class FileOperationsController {
                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
         Integer userId = userDetails.getUserId();
         String path = folderForm.getCurrentPath();
+        String folderName = folderForm.getObjectName();
 
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("createFolderValidationErrors"
@@ -151,7 +161,9 @@ public class FileOperationsController {
             return buildRedirectView(path);
         }
 
-        minioService.createFolder(userId, path, folderForm.getObjectName());
+        minioService.createFolder(userId, path, folderName);
+        log.info("The folder " + folderName + " was created on the path \""
+                + path + "\" by user " + userDetails.getUsername());
         return buildRedirectView(path);
     }
 
@@ -164,6 +176,7 @@ public class FileOperationsController {
         Integer userId = userDetails.getUserId();
         String pathToObject = currentPath.isBlank() ? objectName : currentPath + "/" + objectName;
         minioService.removeObject(userId, pathToObject);
+        log.info("The object " + pathToObject + " was deleted by user " + userDetails.getUsername());
         return buildRedirectView(currentPath);
 
     }
@@ -177,11 +190,12 @@ public class FileOperationsController {
 
         String relativePathToObject = renameFormDto.getRelativePathToObject();
         String path = renameFormDto.getCurrentPath();
+        String newObjectName = renameFormDto.getObjectName();
 
         if (!minioService.doesFileExist(userId, relativePathToObject)) {
             throw new ResourceDoesNotExistException(
-                    "Fail to rename the object on the path " + relativePathToObject +
-                            " because this resource doesn't exist");
+                    "Fail to rename the object on the path \"" + relativePathToObject +
+                            "\" because this resource doesn't exist");
         }
 
         if (bindingResult.hasErrors()) {
@@ -190,7 +204,8 @@ public class FileOperationsController {
             return buildRedirectView(path);
         }
 
-        minioService.renameObject(userId, relativePathToObject, renameFormDto.getObjectName());
+        minioService.renameObject(userId, relativePathToObject, newObjectName);
+        log.info("The file " + relativePathToObject + " was renamed to \"" + newObjectName + "\"");
         return buildRedirectView(path);
     }
 

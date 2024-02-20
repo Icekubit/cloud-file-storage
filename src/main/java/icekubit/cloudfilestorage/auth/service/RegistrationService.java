@@ -49,9 +49,11 @@ public class RegistrationService {
             userRepository.save(newUser);
         } catch (DataIntegrityViolationException e) {
             if (e.getMessage().contains(nameConstraint)) {
-                throw new UniqueNameConstraintException();
+                throw new UniqueNameConstraintException("The user with username "
+                        + newUser.getName() + " already exists");
             } else if (e.getMessage().contains(emailConstraint)) {
-                throw new UniqueEmailConstraintException();
+                throw new UniqueEmailConstraintException("The user with email "
+                        + newUser.getName() + " already exists");
             }
         }
         log.info("User was added to database: " + userDto);
