@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     Array.from(folderIcons).forEach(function (folderIcon) {
         const objectName = folderIcon.parentElement.querySelector('p').textContent;
-        const pathToObject = currentPath ? currentPath + '/' + objectName : objectName;
+        const pathToObject = folderIcon.parentElement.querySelector('.relativePath').textContent
 
         folderIcon.addEventListener("contextmenu", function (event) {
             event.preventDefault();
@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     Array.from(fileIcons).forEach(function (fileIcon) {
         const objectName = fileIcon.parentElement.querySelector('p').textContent;
-        const pathToObject = currentPath ? currentPath + '/' + objectName : objectName;
+        const pathToObject = fileIcon.parentElement.querySelector('.relativePath').textContent;
 
         fileIcon.addEventListener("contextmenu", function (event) {
             event.preventDefault();

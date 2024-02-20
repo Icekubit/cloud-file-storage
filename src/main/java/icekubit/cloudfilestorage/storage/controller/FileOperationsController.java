@@ -43,9 +43,9 @@ public class FileOperationsController {
                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         Integer userId = userDetails.getUserId();
 
-        if (!minioService.doesFileExist(userId, pathToFile)) {
-            throw new ResourceDoesNotExistException("Failed to download the file on the path \"" + pathToFile +
-                    "\" because this file doesn't exist");
+        if (pathToFile.endsWith("/") || !minioService.doesObjectExist(userId, pathToFile)) {
+            throw new ResourceDoesNotExistException("Failed to download the file on the path " + pathToFile +
+                    " because this file doesn't exist");
         }
 
         ByteArrayResource byteArrayResource;
@@ -72,11 +72,11 @@ public class FileOperationsController {
 
     @GetMapping("/folder")
     public void downloadFolder(@RequestParam String pathToFolder,
-                                                            HttpServletResponse httpServletResponse,
+                               HttpServletResponse httpServletResponse,
                                @AuthenticationPrincipal CustomUserDetails userDetails) {
         Integer userId = userDetails.getUserId();
 
-        if (!minioService.doesFolderExist(userId, pathToFolder)) {
+        if (!pathToFolder.endsWith("/") || !minioService.doesObjectExist(userId, pathToFolder)) {
             throw new ResourceDoesNotExistException("Failed to download the folder on the path " + pathToFolder +
                     " because this folder doesn't exist");
         }
@@ -192,11 +192,13 @@ public class FileOperationsController {
         String path = renameFormDto.getCurrentPath();
         String newObjectName = renameFormDto.getObjectName();
 
-        if (!minioService.doesFileExist(userId, relativePathToObject)) {
+        if (!minioService.doesObjectExist(userId, relativePathToObject)) {
             throw new ResourceDoesNotExistException(
                     "Fail to rename the object on the path \"" + relativePathToObject +
                             "\" because this resource doesn't exist");
         }
+
+
 
         if (bindingResult.hasErrors()) {
             redirectAttributes.addFlashAttribute("renameValidationErrors", bindingResult.getAllErrors());

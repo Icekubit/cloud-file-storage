@@ -156,6 +156,7 @@ public class MinioRepoImpl implements MinioRepo {
 
     @Override
     public void renameObject(String path, String newObjectName) {
+
         if (path.endsWith("/")) {
             String newFolder = Paths.get(path).getParent().toString() + "/" + newObjectName + "/";
             createFolder(newFolder);
@@ -191,24 +192,47 @@ public class MinioRepoImpl implements MinioRepo {
 
     @Override
     public Boolean doesFileExist(String path) {
-        Iterable<Result<Item>> results = minioClient.listObjects(
-                ListObjectsArgs.builder()
-                        .bucket(DEFAULT_BUCKET_NAME)
-                        .prefix(path)
-                        .build());
+//        Iterable<Result<Item>> results = minioClient.listObjects(
+//                ListObjectsArgs.builder()
+//                        .bucket(DEFAULT_BUCKET_NAME)
+//                        .prefix(path)
+//                        .build());
+//        try {
+//            for (Result<Item> result : results) {
+//                String objectName = result.get().objectName();
+//                if (objectName.startsWith(path) && !objectName.startsWith(path + "/")) {
+//                    return true;
+//                }
+//            }
+//        } catch (ErrorResponseException | InsufficientDataException | InternalException
+//                 | InvalidKeyException | InvalidResponseException | IOException
+//                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
+//            log.error("The exception was caught: " + e.getMessage());
+//            throw new RuntimeException(e.getMessage());
+//        }
+//        return false;
         try {
-            for (Result<Item> result : results) {
-                if (result.get().objectName().startsWith(path)) {
-                    return true;
-                }
+            minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(DEFAULT_BUCKET_NAME)
+                            .object(path)
+                            .build()
+            );
+        } catch (ErrorResponseException e) {
+            if ("Object does not exist".equals(e.getMessage())) {
+                return false;
+            } else {
+                log.error("The exception was caught: " + e.getMessage());
+                throw new RuntimeException(e.getMessage());
             }
-        } catch (ErrorResponseException | InsufficientDataException | InternalException
+        }
+        catch (InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
             log.error("The exception was caught: " + e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
-        return false;
+        return true;
     }
 
     @Override

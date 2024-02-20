@@ -80,6 +80,15 @@ public class MinioService {
         return minioRepo.doesFolderExist(minioPathToFolder);
     }
 
+    public boolean doesObjectExist(Integer userId, String path) {
+        String minioPathToObject = getMinioPathToObject(userId, path);
+        if (minioPathToObject.endsWith("/")) {
+            return minioRepo.doesFolderExist(minioPathToObject);
+        } else {
+            return minioRepo.doesFileExist(minioPathToObject);
+        }
+    }
+
     public boolean doesFileExist(Integer userId, String path) {
         String minioPathToFile = getMinioPathToObject(userId, path);
         return minioRepo.doesFileExist(minioPathToFile);
