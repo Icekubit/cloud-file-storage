@@ -24,7 +24,7 @@
                     <span th:if="${!breadCrumbs.isEmpty()}">
                         <span th:each="breadCrumb, iterStat: ${breadCrumbs}">
                             <span> -> </span>
-                            <a th:if="${!iterStat.last}" th:href="@{/(path=${#uris.escapePath(breadCrumb.pathForLink)})}" th:text="${breadCrumb.displayName}"></a>
+                            <a th:if="${!iterStat.last}" th:href="@{'/?path=' + ${breadCrumb.pathForLink}}" th:text="${breadCrumb.displayName}"></a>
                             <span th:if="${iterStat.last}" th:text="${breadCrumb.displayName}"></span>
                         </span>
                     </span>
@@ -58,6 +58,7 @@
                             <img th:if="${element.isDirectory}" class="folder-icon" src="/images/folder.svg" alt="Folder Icon" title="Open this folder" style="width: 50px; height: 50px;">
                             <img th:unless="${element.isDirectory}" class="file-icon" src="/images/file.svg" alt="Folder Icon" style="width: 50px; height: 50px;">
                             <p th:text="${element.objectName}" style="margin-top: 5px;"></p>
+                            <div th:text="${element.relativePath}" class="relativePath" style="display: none;"></div>
                         </div>
                     </div>
                 </div>

@@ -182,13 +182,10 @@ document.addEventListener("DOMContentLoaded", function () {
         folderIcon.addEventListener("click", function (event) {
             event.preventDefault();
 
-            if (window.location.href.toString().includes('path')) {
-                window.location.href = window.location.href + encodeURIComponent('/' + objectName)
-            }
+            const pathQueryParam
+                = folderIcon.parentElement.querySelector('.relativePath').textContent.slice(0, -1);
 
-            if (!window.location.href.toString().includes('path')) {
-                window.location.href = window.location.href + '?path=' + encodeURIComponent(objectName)
-            }
+            window.location.href = window.location.origin + '?path=' + encodeURIComponent(pathQueryParam);
 
         })
 

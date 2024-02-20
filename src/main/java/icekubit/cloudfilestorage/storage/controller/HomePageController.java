@@ -2,23 +2,20 @@ package icekubit.cloudfilestorage.storage.controller;
 
 import icekubit.cloudfilestorage.storage.dto.BreadCrumbDto;
 import icekubit.cloudfilestorage.storage.dto.CreateFolderFormDto;
+import icekubit.cloudfilestorage.storage.dto.MinioItemDto;
 import icekubit.cloudfilestorage.storage.dto.RenameFormDto;
+import icekubit.cloudfilestorage.storage.exception.ResourceDoesNotExistException;
 import icekubit.cloudfilestorage.storage.mapper.MinioMapper;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,44 +31,32 @@ public class HomePageController {
     }
 
     @GetMapping("/")
-    public String showHomePage(Authentication authentication,
-                               @RequestParam(required = false) String path,
+    public String showHomePage(@RequestParam(required = false) String path,
+                               @AuthenticationPrincipal CustomUserDetails userDetails,
                                Model model) {
-        if ((authentication == null || !authentication.isAuthenticated()) && path != null) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        Integer userId = userDetails.getUserId();
+
+        if (path == null) {
+            path = "";
         }
 
-        Integer userId = 0;
-        if (authentication != null && authentication.isAuthenticated()) {
-            userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
-        }
-
-        if (path != null && path.endsWith("/")) {
-            return "redirect:/?path=" + path.substring(0, path.length() - 1);
+        if (!path.isEmpty() && !minioService.doesFolderExist(userId, path)) {
+            throw new ResourceDoesNotExistException("The folder on the path " + path
+                    + " doesn't exist for user " + userDetails.getUsername());
         }
 
 
-//        if ((path != null && minioService.doesFolderExist("user-" + userId + "-files/" + path + "/"))
-        if ((path != null && minioService.doesFolderExist(userId, path))
-        && (authentication != null && authentication.isAuthenticated())
-        || (path == null && authentication != null && authentication.isAuthenticated())) {
-            if (path == null) {
-                path = "";
-            }
-            var listOfItems = minioService.getListOfItems(userId, path)
-                    .stream()
-                    .map(minioMapper::convertItemToDto)
-                    .collect(Collectors.toList());
-            model.addAttribute("path", path);
-            model.addAttribute("listOfItems", listOfItems);
-            model.addAttribute("breadCrumbs", makeBreadCrumbsFromPath(path));
-            model.addAttribute("folderForm", new CreateFolderFormDto());
-            model.addAttribute("renameFormDto", new RenameFormDto());
-            model.addAttribute("uploadFileFormDto", new RenameFormDto());
-            model.addAttribute("uploadFolderFormDto", new RenameFormDto());
-        } else if (path != null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        List<MinioItemDto> listOfItems = minioService.getListOfItems(userId, path)
+                .stream()
+                .map(minioMapper::convertItemToDto)
+                .collect(Collectors.toList());
+        model.addAttribute("path", path);
+        model.addAttribute("listOfItems", listOfItems);
+        model.addAttribute("breadCrumbs", makeBreadCrumbsFromPath(path));
+        model.addAttribute("folderForm", new CreateFolderFormDto());
+        model.addAttribute("renameFormDto", new RenameFormDto());
+        model.addAttribute("uploadFileFormDto", new RenameFormDto());
+        model.addAttribute("uploadFolderFormDto", new RenameFormDto());
 
         return "home";
     }
@@ -81,17 +66,22 @@ public class HomePageController {
             return Collections.emptyList();
         }
 
+        String[] objectNames = path.split("/");
         List<BreadCrumbDto> breadCrumbs = new ArrayList<>();
-        Iterator<Path> iterator = Paths.get(path).iterator();
-        Path pathForLink = Paths.get("");
-        while (iterator.hasNext()) {
-            Path currentObject = iterator.next();
-            pathForLink = pathForLink.resolve(currentObject);
+        BreadCrumbDto firstBreadCrumbDto = new BreadCrumbDto();
+        firstBreadCrumbDto.setDisplayName(objectNames[0]);
+        String pathForLink = objectNames[0];
+        firstBreadCrumbDto.setPathForLink(pathForLink);
+        breadCrumbs.add(firstBreadCrumbDto);
+
+        for (int i = 1; i < objectNames.length; i++) {
             BreadCrumbDto breadCrumbDto = new BreadCrumbDto();
-            breadCrumbDto.setDisplayName(currentObject.toString());
-            breadCrumbDto.setPathForLink(pathForLink + "/");
+            breadCrumbDto.setDisplayName(objectNames[i]);
+            pathForLink = pathForLink + "%2F" + objectNames[i];
+            breadCrumbDto.setPathForLink(pathForLink);
             breadCrumbs.add(breadCrumbDto);
         }
+
 
         return breadCrumbs;
     }
