@@ -9,7 +9,7 @@ import java.util.List;
 public interface MinioRepo {
     void createFolder(String path);
     void uploadFile(MultipartFile file, String destination);
-    InputStream downloadFile(String path);
+    InputStream downloadFile(String pathz);
     void copyFile(String source, String destination);
     void copyFolder(String source, String destination);
     void removeObject(String path);

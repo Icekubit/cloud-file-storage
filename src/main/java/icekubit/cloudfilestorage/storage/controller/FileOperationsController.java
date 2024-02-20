@@ -10,11 +10,7 @@ import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -28,6 +24,7 @@ import org.springframework.web.util.UriUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 
 @Controller
 @Slf4j
@@ -39,35 +36,26 @@ public class FileOperationsController {
     }
 
     @GetMapping("/file")
-    public ResponseEntity<Resource> downloadFile(@RequestParam String pathToFile,
-                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public void downloadFile(@RequestParam String pathToFile,
+                             HttpServletResponse httpServletResponse,
+                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Integer userId = userDetails.getUserId();
 
         if (pathToFile.endsWith("/") || !minioService.doesObjectExist(userId, pathToFile)) {
             throw new ResourceDoesNotExistException("Failed to download the file on the path " + pathToFile +
                     " because this file doesn't exist");
         }
+        String fileName = Paths.get(pathToFile).getFileName().toString();
+        String encodedFileName = UriUtils.encode(fileName, StandardCharsets.UTF_8);
+        httpServletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFileName + "\"");
 
-        ByteArrayResource byteArrayResource;
-        try (InputStream inputStream = minioService.downloadFile(userId, pathToFile)){
-            byteArrayResource = new ByteArrayResource(inputStream.readAllBytes());
+        try (OutputStream outputStream = httpServletResponse.getOutputStream();
+             InputStream inputStream = minioService.downloadFile(userId, pathToFile)) {
+            outputStream.write(inputStream.readAllBytes());
+            log.info("The file " + pathToFile + " was downloaded by user " + userDetails.getUsername());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-
-
-        HttpHeaders headers = new HttpHeaders();
-        String fileName = Paths.get(pathToFile).getFileName().toString();
-        String encodedFileName = UriUtils.encode(fileName, StandardCharsets.UTF_8);
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFileName + "\"");
-
-        log.info("The file " + pathToFile + " was downloaded by user " + userDetails.getUsername());
-
-        return ResponseEntity.ok()
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(byteArrayResource);
     }
 
     @GetMapping("/folder")
