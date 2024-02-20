@@ -198,6 +198,11 @@ public class FileOperationsController {
                             "\" because this resource doesn't exist");
         }
 
+        String oldObjectName = Paths.get(relativePathToObject).getFileName().toString();
+        if (newObjectName.equals(oldObjectName)) {
+            return buildRedirectView(path);
+        }
+
 
 
         if (bindingResult.hasErrors()) {

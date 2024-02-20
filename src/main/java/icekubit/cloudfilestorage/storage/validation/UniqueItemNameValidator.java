@@ -31,6 +31,7 @@ public class UniqueItemNameValidator implements
         String currentPath = formDto.getCurrentPath();
         String objectName = formDto.getObjectName();
 
+
         return minioService.getListOfItems(userId, currentPath).stream()
                 .map(Item::objectName)
                 .map(Paths::get)

@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
             renameButton.addEventListener("click", function() {
                 const newName = renameInput.value;
                 renameForm.querySelector("input[name='objectName']").value = newName;
-                renameForm.querySelector("input[name='relativePathToObject']").value = pathToObject + '/';
+                renameForm.querySelector("input[name='relativePathToObject']").value = pathToObject;
                 renameForm.querySelector("input[name='currentPath']").value = currentPath;
                 renameForm.submit();
             });
