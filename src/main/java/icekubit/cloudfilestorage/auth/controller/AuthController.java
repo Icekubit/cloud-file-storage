@@ -22,18 +22,23 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 @Slf4j
-public class RegistrationController {
+public class AuthController {
 
     private final RegistrationService registrationService;
     private final CustomUserDetailsService userDetailsService;
     private final SecurityContextRepository securityContextRepository;
 
-    public RegistrationController(RegistrationService registrationService,
-                                  CustomUserDetailsService userDetailsService,
-                                  SecurityContextRepository securityContextRepository) {
+    public AuthController(RegistrationService registrationService,
+                          CustomUserDetailsService userDetailsService,
+                          SecurityContextRepository securityContextRepository) {
         this.registrationService = registrationService;
         this.userDetailsService = userDetailsService;
         this.securityContextRepository = securityContextRepository;
+    }
+
+    @GetMapping("/login")
+    public String showLoginPage() {
+        return "login";
     }
 
     @GetMapping("/registration")
