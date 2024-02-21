@@ -27,6 +27,8 @@ dependencies {
     implementation 'org.liquibase:liquibase-core'
     implementation 'io.minio:minio:8.5.7'
     implementation 'org.projectlombok:lombok:1.18.30'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.session:spring-session-data-redis'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'

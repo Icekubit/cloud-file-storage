@@ -19,3 +19,7 @@ services:
       - MINIO_CONSOLE_ADDRESS=:9001
       - MINIO_ACCESS_KEY=username
       - MINIO_SECRET_KEY=password
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
