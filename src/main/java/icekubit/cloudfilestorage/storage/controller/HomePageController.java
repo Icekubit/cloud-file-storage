@@ -13,7 +13,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.util.UriUtils;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,6 +41,7 @@ public class HomePageController {
         if (path == null) {
             path = "";
         }
+
 
         if (!path.isEmpty() && !minioService.doesFolderExist(userId, path)) {
             throw new ResourceDoesNotExistException("The folder on the path " + path

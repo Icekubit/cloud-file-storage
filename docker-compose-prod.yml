@@ -26,9 +26,7 @@ services:
       - redis_data:/data
 
   cloud-file-storage:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: icekubit/cloud-file-storage:v1.0.0
     ports:
       - "8080:8080"
     environment:

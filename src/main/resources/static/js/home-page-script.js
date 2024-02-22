@@ -71,7 +71,7 @@ dropZone.addEventListener('drop', async (event) => {
     }
 
     function pushCreateFolderFetchToArray(currentPath, objectName) {
-        const url = window.location.origin + '/folder';
+        const url = window.location.origin + window.location.pathname + 'folder';
         const formData = new FormData();
         formData.append('currentPath', currentPath);
         formData.append('objectName', objectName);
@@ -87,7 +87,7 @@ dropZone.addEventListener('drop', async (event) => {
     }
 
     function pushUploadFileFetchToArray(file, pathToFile) {
-        const url = window.location.origin + '/file/upload';
+        const url = window.location.origin + window.location.pathname + 'file/upload';
         const formData = new FormData();
         formData.append('file', file);
         formData.append('currentPath', pathToFile);
@@ -113,7 +113,7 @@ logout.addEventListener("click", function (event) {
     fetch('logout', {method: 'POST'})
         .then(response => {
             if (response.ok) {
-                window.location.href = '/';
+                window.location.href = window.location.origin + window.location.pathname;
             }
         })
         .catch(error => console.error('Error:', error));
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const pathQueryParam
                 = folderIcon.parentElement.querySelector('.relativePath').textContent.slice(0, -1);
 
-            window.location.href = window.location.origin + '?path=' + encodeURIComponent(pathQueryParam);
+            window.location.href = window.location.origin + window.location.pathname + '?path=' + encodeURIComponent(pathQueryParam);
 
         })
 

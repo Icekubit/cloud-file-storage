@@ -17,11 +17,13 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import java.io.*;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -206,9 +208,11 @@ public class FileOperationsController {
 
     private RedirectView buildRedirectView(String path) {
         if (path.isBlank()) {
-            return new RedirectView("/");
+            return new RedirectView(ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/").toUriString());
         }
-        return new RedirectView(UriComponentsBuilder.fromPath("/")
+        return new RedirectView(ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/")
                 .queryParam("path", path)
                 .toUriString());
     }
