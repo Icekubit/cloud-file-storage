@@ -52,9 +52,8 @@ class FileOperationsControllerTest {
                         .session(session))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/?path=%2Ftest%2Fpath"))
-                .andExpect(flash().attributeCount(0));  // Assuming no flash attributes are set
+                .andExpect(flash().attributeCount(0));
 
-        // Verifying that the removeObject method is called with the correct arguments
         verify(minioService).removeObject(eq(42), eq("testObject"));
     }
 

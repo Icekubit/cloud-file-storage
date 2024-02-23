@@ -50,21 +50,19 @@ public class AuthController {
     public String registerAndLogin(HttpServletRequest request, HttpServletResponse response,
                                    @Valid UserDto userDto, BindingResult bindingResult) {
 
-        if (bindingResult.hasErrors()) {
-            return "registration";
-        }
-
         try {
             registrationService.registerNewUser(userDto);
         } catch (UniqueNameConstraintException e) {
             bindingResult.rejectValue("name", "UniqueNameConstraint",
                     "The user with this name already exists");
-            log.info("Exception: " + e);
+            log.info("Failed to register user with name {} because the user with this name already exists"
+                    , userDto.getName());
             return "registration";
         } catch (UniqueEmailConstraintException e) {
             bindingResult.rejectValue("email", "UniqueEmailConstraint",
                     "The user with this email already exists");
-            log.info("Exception: " + e);
+            log.info("Failed to register user with email {} because the user with this email already exists"
+                    , userDto.getEmail());
             return "registration";
         }
         log.info("The user " + userDto + " was registered");

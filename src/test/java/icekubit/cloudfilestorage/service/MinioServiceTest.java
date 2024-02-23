@@ -86,7 +86,7 @@ public class MinioServiceTest {
         registrationService.registerNewUser(testUser);
         Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
         String pathToUserRootFolder = "user-" + testUserId + "-files/";
-        assertThat(minioRepo.doesFolderExist(pathToUserRootFolder)).isTrue();
+        assertThat(minioRepo.doesObjectExist(pathToUserRootFolder)).isTrue();
     }
 
     @Test

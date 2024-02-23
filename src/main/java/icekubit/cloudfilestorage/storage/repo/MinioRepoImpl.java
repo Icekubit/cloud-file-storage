@@ -1,5 +1,6 @@
 package icekubit.cloudfilestorage.storage.repo;
 
+import icekubit.cloudfilestorage.storage.exception.FileDoesntExistException;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.messages.Item;
@@ -87,7 +88,10 @@ public class MinioRepoImpl implements MinioRepo {
                             .bucket(DEFAULT_BUCKET_NAME)
                             .object(path)
                             .build());
-        } catch (ErrorResponseException | InsufficientDataException | InternalException
+        } catch (ErrorResponseException e) {
+            throw new FileDoesntExistException("File " + path + " doesn't exist");
+        }
+        catch (InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
             log.error("The exception was caught: " + e.getMessage());
@@ -108,7 +112,10 @@ public class MinioRepoImpl implements MinioRepo {
                                             .object(source)
                                             .build())
                             .build());
-        } catch (ErrorResponseException | InsufficientDataException | InternalException
+        } catch (ErrorResponseException e) {
+            throw new FileDoesntExistException("Can't copy file " + source + " because this file doesn't exist");
+        }
+        catch (InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
             log.error("The exception was caught: " + e.getMessage());
@@ -169,7 +176,7 @@ public class MinioRepoImpl implements MinioRepo {
     }
 
     @Override
-    public Boolean doesFolderExist(String path) {
+    public Boolean doesObjectExist(String path) {
         Iterable<Result<Item>> results = minioClient.listObjects(
                 ListObjectsArgs.builder()
                         .bucket(DEFAULT_BUCKET_NAME)
@@ -177,7 +184,7 @@ public class MinioRepoImpl implements MinioRepo {
                         .build());
         try {
             for (Result<Item> result : results) {
-                if (result.get().objectName().startsWith(path)) {
+                if (result.get().objectName().startsWith(path + "/")) {
                     return true;
                 }
             }
@@ -188,51 +195,6 @@ public class MinioRepoImpl implements MinioRepo {
             throw new RuntimeException(e.getMessage());
         }
         return false;
-    }
-
-    @Override
-    public Boolean doesFileExist(String path) {
-//        Iterable<Result<Item>> results = minioClient.listObjects(
-//                ListObjectsArgs.builder()
-//                        .bucket(DEFAULT_BUCKET_NAME)
-//                        .prefix(path)
-//                        .build());
-//        try {
-//            for (Result<Item> result : results) {
-//                String objectName = result.get().objectName();
-//                if (objectName.startsWith(path) && !objectName.startsWith(path + "/")) {
-//                    return true;
-//                }
-//            }
-//        } catch (ErrorResponseException | InsufficientDataException | InternalException
-//                 | InvalidKeyException | InvalidResponseException | IOException
-//                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-//            log.error("The exception was caught: " + e.getMessage());
-//            throw new RuntimeException(e.getMessage());
-//        }
-//        return false;
-        try {
-            minioClient.statObject(
-                    StatObjectArgs.builder()
-                            .bucket(DEFAULT_BUCKET_NAME)
-                            .object(path)
-                            .build()
-            );
-        } catch (ErrorResponseException e) {
-            if ("Object does not exist".equals(e.getMessage())) {
-                return false;
-            } else {
-                log.error("The exception was caught: " + e.getMessage());
-                throw new RuntimeException(e.getMessage());
-            }
-        }
-        catch (InsufficientDataException | InternalException
-                 | InvalidKeyException | InvalidResponseException | IOException
-                 | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-            log.error("The exception was caught: " + e.getMessage());
-            throw new RuntimeException(e.getMessage());
-        }
-        return true;
     }
 
     @Override

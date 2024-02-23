@@ -9,13 +9,12 @@ import java.util.List;
 public interface MinioRepo {
     void createFolder(String path);
     void uploadFile(MultipartFile file, String destination);
-    InputStream downloadFile(String pathz);
+    InputStream downloadFile(String path);
     void copyFile(String source, String destination);
     void copyFolder(String source, String destination);
     void removeObject(String path);
     void renameObject(String path, String newObjectName);
-    Boolean doesFolderExist(String path);
-    Boolean doesFileExist(String path);
+    Boolean doesObjectExist(String path);
     List<Item> getListOfItems(String path);
     List<Item> getListOfItemsRecursively(String path);
 }

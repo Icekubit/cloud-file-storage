@@ -73,28 +73,18 @@ public class MinioService {
         }
     }
 
-
-
-    public boolean doesFolderExist(Integer userId, String path) {
-        String minioPathToFolder = getMinioPathToObject(userId, path) + "/";
-        return minioRepo.doesFolderExist(minioPathToFolder);
-    }
-
     public boolean doesObjectExist(Integer userId, String path) {
-        String minioPathToObject = getMinioPathToObject(userId, path);
-        if (minioPathToObject.endsWith("/")) {
-            return minioRepo.doesFolderExist(minioPathToObject);
-        } else {
-            return minioRepo.doesFileExist(minioPathToObject);
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
         }
-    }
-
-    public boolean doesFileExist(Integer userId, String path) {
-        String minioPathToFile = getMinioPathToObject(userId, path);
-        return minioRepo.doesFileExist(minioPathToFile);
+        String minioPathToObject = getMinioPathToObject(userId, path);
+        return minioRepo.doesObjectExist(minioPathToObject);
     }
 
     public List<Item> getListOfItems(Integer userId, String path) {
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
         String minioPathToFolder = getMinioPathToObject(userId, path) + "/";
         return minioRepo.getListOfItems(minioPathToFolder);
     }

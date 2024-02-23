@@ -4,6 +4,7 @@ import icekubit.cloudfilestorage.storage.dto.CreateFolderFormDto;
 import icekubit.cloudfilestorage.storage.dto.RenameFormDto;
 import icekubit.cloudfilestorage.storage.dto.UploadFileFormDto;
 import icekubit.cloudfilestorage.storage.dto.UploadFolderFormDto;
+import icekubit.cloudfilestorage.storage.exception.FileDoesntExistException;
 import icekubit.cloudfilestorage.storage.exception.ResourceDoesNotExistException;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
@@ -19,14 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.servlet.view.RedirectView;
-import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriUtils;
 
 import java.io.*;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 
 @Controller
 @Slf4j
@@ -43,19 +41,19 @@ public class FileOperationsController {
                              @AuthenticationPrincipal CustomUserDetails userDetails) {
         Integer userId = userDetails.getUserId();
 
-        if (pathToFile.endsWith("/") || !minioService.doesObjectExist(userId, pathToFile)) {
+        String fileName = Paths.get(pathToFile).getFileName().toString();
+        String encodedFileName = UriUtils.encode(fileName, StandardCharsets.UTF_8);
+
+
+        try (InputStream inputStream = minioService.downloadFile(userId, pathToFile)) {
+            httpServletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFileName + "\"");
+            httpServletResponse.getOutputStream().write(inputStream.readAllBytes());
+            log.info("The file " + pathToFile + " was downloaded by user " + userDetails.getUsername());
+        } catch (FileDoesntExistException e) {
             throw new ResourceDoesNotExistException("Failed to download the file on the path " + pathToFile +
                     " because this file doesn't exist");
         }
-        String fileName = Paths.get(pathToFile).getFileName().toString();
-        String encodedFileName = UriUtils.encode(fileName, StandardCharsets.UTF_8);
-        httpServletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFileName + "\"");
-
-        try (OutputStream outputStream = httpServletResponse.getOutputStream();
-             InputStream inputStream = minioService.downloadFile(userId, pathToFile)) {
-            outputStream.write(inputStream.readAllBytes());
-            log.info("The file " + pathToFile + " was downloaded by user " + userDetails.getUsername());
-        } catch (IOException e) {
+        catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -182,9 +180,9 @@ public class FileOperationsController {
         String path = renameFormDto.getCurrentPath();
         String newObjectName = renameFormDto.getObjectName();
 
-        if (!minioService.doesObjectExist(userId, relativePathToObject)) {
+        if (relativePathToObject.endsWith("/") && !minioService.doesObjectExist(userId, relativePathToObject)) {
             throw new ResourceDoesNotExistException(
-                    "Fail to rename the object on the path \"" + relativePathToObject +
+                    "Fail to rename the folder on the path \"" + relativePathToObject +
                             "\" because this resource doesn't exist");
         }
 
@@ -201,7 +199,13 @@ public class FileOperationsController {
             return buildRedirectView(path);
         }
 
-        minioService.renameObject(userId, relativePathToObject, newObjectName);
+        try {
+            minioService.renameObject(userId, relativePathToObject, newObjectName);
+        } catch (FileDoesntExistException e) {
+            throw new ResourceDoesNotExistException(
+                    "Fail to rename the file on the path \"" + relativePathToObject +
+                            "\" because this resource doesn't exist");
+        }
         log.info("The file " + relativePathToObject + " was renamed to \"" + newObjectName + "\"");
         return buildRedirectView(path);
     }
