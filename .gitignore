@@ -6,6 +6,7 @@ build/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .env
+nginx.config
 
 ### STS ###
 .apt_generated

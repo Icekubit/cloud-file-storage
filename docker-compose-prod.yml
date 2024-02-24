@@ -3,6 +3,7 @@ version: "3.8"
 services:
   postgres:
     image: postgres
+    restart: on-failure
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -11,7 +12,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   minio:
-    image: quay.io/minio/minio
+    image: quay.io/minio/minio:RELEASE.2023-11-01T01-57-10Z-cpuv1
+    restart: on-failure
     command:
       server /data
     environment:
@@ -22,11 +24,13 @@ services:
 
   redis:
     image: redis
+    restart: on-failure
     volumes:
       - redis_data:/data
 
   cloud-file-storage:
     image: icekubit/cloud-file-storage:v1.0.0
+    restart: on-failure
     ports:
       - "8080:8080"
     environment:

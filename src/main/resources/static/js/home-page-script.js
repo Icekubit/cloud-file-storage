@@ -14,9 +14,6 @@ dropZone.addEventListener('dragleave', () => {
 });
 
 dropZone.addEventListener('drop', async (event) => {
-    console.log(event);
-    console.log(event.dataTransfer);
-    console.log(event.dataTransfer.items);
     event.preventDefault();
     dropZone.classList.remove('drop-zone--over');
     const items = event.dataTransfer.items;
