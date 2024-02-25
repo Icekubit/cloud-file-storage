@@ -16,7 +16,7 @@ This web application serves as a platform for accessing and managing files and f
 - Frontend: HTML/CSS/Javascript, Bootstrap 5
 - Backend: Spring Boot, Spring Security, Spring Sessions, Thymeleaf
 - Database: Postgresql, Spring Data JPA, Minio S3, Redis
-- Tests: JUnit 5, TestContainers, Mockito
+- Tests: JUnit 5, TestContainers
 
 ## Local Setup
 - To run this project locally, follow these steps:
