@@ -29,7 +29,7 @@ services:
       - redis_data:/data
 
   cloud-file-storage:
-    image: icekubit/cloud-file-storage:v1.0.0
+    image: icekubit/cloud-file-storage:v1.0.1
     restart: on-failure
     ports:
       - "8080:8080"
