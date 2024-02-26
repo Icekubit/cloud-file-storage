@@ -16,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,13 +43,20 @@ public class AuthController {
     }
 
     @GetMapping("/registration")
-    public String showRegistrationForm(UserDto userDto) {
+    public String showRegistrationForm(Model model) {
+
+        model.addAttribute("userDto", new UserDto());
         return "registration";
     }
 
     @PostMapping("/registration")
     public String registerAndLogin(HttpServletRequest request, HttpServletResponse response,
                                    @Valid UserDto userDto, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            return "registration";
+        }
+
 
         try {
             registrationService.registerNewUser(userDto);
@@ -65,7 +73,7 @@ public class AuthController {
                     , userDto.getEmail());
             return "registration";
         }
-        log.info("The user " + userDto + " was registered");
+        log.info("The user {} was registered", userDto);
         loginAfterRegistration(request, response, userDto);
         return "redirect:/";
     }
