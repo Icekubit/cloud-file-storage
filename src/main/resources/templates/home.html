@@ -93,6 +93,7 @@
 
             <form id="uploadFileForm" th:action="@{/file/upload}" th:method="post" enctype="multipart/form-data" style="display: none;">
                 <input type="file" id="fileInput" name="file" />
+                <input type="hidden" name="objectName"/>
                 <input type="hidden" name="currentPath" th:value="${path}" />
             </form>
 
@@ -118,6 +119,7 @@
 
             <form id="uploadFolderForm" th:action="@{/folder/upload}" th:method="post" enctype="multipart/form-data" style="display: none;">
                 <input type="file" id="folderInput" name="files" webkitdirectory multiple/>
+                <input type="hidden" name="objectName"/>
                 <input type="hidden" name="currentPath" th:value="${path}" />
                 <input type="submit" value="Upload" />
             </form>

@@ -261,7 +261,13 @@ document.addEventListener("DOMContentLoaded", function () {
     uploadFileMenuItem.addEventListener('click', () => fileInput.click());
 
     const uploadFileForm = document.getElementById('uploadFileForm');
-    fileInput.addEventListener('change', () => {
+    fileInput.addEventListener('change', (event) => {
+        const fileList = event.target.files;
+        if (fileList.length > 0) {
+            const fileName = fileList[0].name;
+            const objectNameField = uploadFileForm.querySelector('input[name="objectName"]');
+            objectNameField.value = fileName;
+        }
         uploadFileForm.submit();
     });
 
@@ -271,7 +277,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const uploadFolderForm = document.getElementById('uploadFolderForm');
 
-    folderInput.addEventListener('change', () => uploadFolderForm.submit());
+    folderInput.addEventListener('change', (event) => {
+        const fileList = event.target.files;
+        if (fileList.length > 0) {
+            const rootFolderName = fileList[0].webkitRelativePath.split('/')[0];
+            const objectNameField = uploadFolderForm.querySelector('input[name="objectName"]');
+            objectNameField.value = rootFolderName;
+        }
+        uploadFolderForm.submit();
+    });
 
 
     const listOfValidationMessageDiv = document.getElementsByClassName("validation-message");
