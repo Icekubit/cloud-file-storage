@@ -15,6 +15,10 @@ dropZone.addEventListener('dragleave', () => {
 
 dropZone.addEventListener('drop', async (event) => {
     event.preventDefault();
+
+    // it doesn't make any sense but with this instruction drop-zone works always for some reason
+    // I have no idea why it works
+    console.log(event.dataTransfer.files[0]);
     dropZone.classList.remove('drop-zone--over');
     const items = event.dataTransfer.items;
     const fetchPromises = [];
@@ -86,8 +90,11 @@ dropZone.addEventListener('drop', async (event) => {
     function pushUploadFileFetchToArray(file, pathToFile) {
         const url = window.location.origin + window.location.pathname + 'file/upload';
         const formData = new FormData();
+        const objectName = pathToFile.split('/').pop();
+
         formData.append('file', file);
         formData.append('currentPath', pathToFile);
+        formData.append('objectName', objectName);
 
         const fetchPromise = fetch(url, {
             method: 'POST',
