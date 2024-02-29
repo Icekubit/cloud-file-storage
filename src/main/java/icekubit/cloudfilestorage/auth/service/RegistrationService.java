@@ -6,8 +6,8 @@ import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.dto.UserDto;
 import icekubit.cloudfilestorage.auth.model.entity.User;
 import icekubit.cloudfilestorage.auth.repo.UserRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,14 @@ public class RegistrationService {
 
     private final MinioService minioService;
 
+    /* The strings "nameConstraint" and "emailConstraint" should correspond to the constraint names
+    in the Liquibase changelog-1.0
+     */
+
+    @Value("unique_name")
     private String nameConstraint;
+
+    @Value("unique_email")
     private String emailConstraint;
 
     public RegistrationService(UserRepository userRepository,
@@ -31,12 +38,6 @@ public class RegistrationService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.minioService = minioService;
-    }
-
-    @PostConstruct
-    private void initialize() {
-        nameConstraint = userRepository.findConstraintNameByColumnName("name");
-        emailConstraint = userRepository.findConstraintNameByColumnName("email");
     }
 
     public void registerNewUser(UserDto userDto) {
