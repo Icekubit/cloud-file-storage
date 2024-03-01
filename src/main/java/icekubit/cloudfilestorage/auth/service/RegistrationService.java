@@ -40,6 +40,7 @@ public class RegistrationService {
         this.minioService = minioService;
     }
 
+
     public void registerNewUser(UserDto userDto) {
         User newUser = User.builder()
                 .name(userDto.getName())

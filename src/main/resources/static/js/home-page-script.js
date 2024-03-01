@@ -6,16 +6,19 @@ const currentPath = urlParams.get('path') !== null ? urlParams.get('path') : '';
 
 dropZone.addEventListener('dragover', (event) => {
     event.preventDefault();
+    event.stopPropagation();
     dropZone.classList.add('drop-zone--over');
 });
 
 dropZone.addEventListener('dragleave', (event) => {
     event.preventDefault();
+    event.stopPropagation();
     dropZone.classList.remove('drop-zone--over');
 });
 
 dropZone.addEventListener('drop', async (event) => {
     event.preventDefault();
+    event.stopPropagation();
 
     console.log(event.dataTransfer.files[0]);
     dropZone.classList.remove('drop-zone--over');

@@ -46,9 +46,10 @@ public class FileOperationsController {
 
 
         try (InputStream inputStream = minioService.downloadFile(userId, pathToFile)) {
-            httpServletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFileName + "\"");
+            httpServletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + encodedFileName + "\"");
             httpServletResponse.getOutputStream().write(inputStream.readAllBytes());
-            log.info("The file " + pathToFile + " was downloaded by user " + userDetails.getUsername());
+            log.info("The file {} was downloaded by user {}", pathToFile, userDetails.getUsername());
         } catch (FileDoesntExistException e) {
             throw new ResourceDoesNotExistException("Failed to download the file on the path " + pathToFile +
                     " because this file doesn't exist");
@@ -77,7 +78,7 @@ public class FileOperationsController {
 
         try {
             minioService.downloadFolderAsZip(userId, pathToFolder, httpServletResponse.getOutputStream());
-            log.info("The folder " + pathToFolder + " was downloaded by user " + userDetails.getUsername());
+            log.info("The folder {} was downloaded by user {}", pathToFolder, userDetails.getUsername());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -102,8 +103,8 @@ public class FileOperationsController {
         }
 
         minioService.uploadMultipartFile(userId, path, file);
-        log.info("The file " + file.getOriginalFilename()
-                + " was uploaded to the path \"" + path + "\" by user " + userDetails.getUsername());
+        log.info("The file {} was uploaded to the path \"{}\" by user "
+                , file.getOriginalFilename(), userDetails.getUsername());
         return buildRedirectView(path);
     }
 
@@ -127,8 +128,8 @@ public class FileOperationsController {
         for (MultipartFile file: files) {
             minioService.uploadMultipartFile(userId, path, file);
         }
-        log.info("The folder " + files[0].getOriginalFilename()
-                + " was uploaded to the path \"" + path + "\" by user " + userDetails.getUsername());
+        log.info("The folder {} was uploaded to the path \"{}\" by user ",
+                files[0].getOriginalFilename(), userDetails.getUsername());
         return buildRedirectView(path);
     }
 
@@ -150,8 +151,8 @@ public class FileOperationsController {
         }
 
         minioService.createFolder(userId, path, folderName);
-        log.info("The folder " + folderName + " was created on the path \""
-                + path + "\" by user " + userDetails.getUsername());
+        log.info("The folder {} was created on the path \"{}\" by user {}",
+                folderName, path, userDetails.getUsername());
         return buildRedirectView(path);
     }
 
@@ -164,7 +165,7 @@ public class FileOperationsController {
         Integer userId = userDetails.getUserId();
         String pathToObject = currentPath.isBlank() ? objectName : currentPath + "/" + objectName;
         minioService.removeObject(userId, pathToObject);
-        log.info("The object " + pathToObject + " was deleted by user " + userDetails.getUsername());
+        log.info("The object {} was deleted by user {}", pathToObject, userDetails.getUsername());
         return buildRedirectView(currentPath);
 
     }
@@ -206,7 +207,7 @@ public class FileOperationsController {
                     "Fail to rename the file on the path \"" + relativePathToObject +
                             "\" because this resource doesn't exist");
         }
-        log.info("The file " + relativePathToObject + " was renamed to \"" + newObjectName + "\"");
+        log.info("The file {} was renamed to \"{}\"", relativePathToObject, newObjectName);
         return buildRedirectView(path);
     }
 

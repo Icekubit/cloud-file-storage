@@ -13,14 +13,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceDoesNotExistException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleNotFoundException(ResourceDoesNotExistException exception) {
-        log.info("Exception was caught: " + exception.getMessage());
+        log.info("Exception was caught: {}", exception.getMessage());
         return "error/404";
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String handleGenericException(Exception exception) {
-        log.warn("Exception was caught: " + exception.getMessage());
+        log.warn("Exception was caught: {}", exception.getMessage());
         return "error/500";
     }
 

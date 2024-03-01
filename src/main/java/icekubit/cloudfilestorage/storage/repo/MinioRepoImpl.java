@@ -33,12 +33,12 @@ public class MinioRepoImpl implements MinioRepo {
     private void createDefaultBucket() {
         try {
             minioClient.makeBucket(MakeBucketArgs.builder().bucket(DEFAULT_BUCKET_NAME).build());
-            log.info("Bucket '" + DEFAULT_BUCKET_NAME + "' was created");
+            log.info("Bucket '{}' was created", DEFAULT_BUCKET_NAME);
         } catch (ErrorResponseException e) {
-            log.error("Can't create bucket '" + DEFAULT_BUCKET_NAME + "' because bucket with this name already exists");
+            log.error("Can't create bucket '{}' because bucket with this name already exists", DEFAULT_BUCKET_NAME);
         } catch (InsufficientDataException | InternalException | InvalidKeyException | InvalidResponseException
                  | IOException | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-            log.error("The exception was caught: " + e.getMessage());
+            log.error("The exception was caught: {}", e.getMessage());
         }
 
     }
@@ -53,11 +53,11 @@ public class MinioRepoImpl implements MinioRepo {
                             .stream(
                                     new ByteArrayInputStream(new byte[]{}), 0, -1)
                             .build());
-            log.info("The folder '" + path + "' is created");
+            log.info("The folder '{}' is created", path);
         } catch (ErrorResponseException | InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-                log.error("The exception was caught: " + e.getMessage());
+                log.error("The exception was caught: {}", e.getMessage());
         }
     }
 
@@ -71,11 +71,11 @@ public class MinioRepoImpl implements MinioRepo {
                             .stream(
                                     file.getInputStream(), -1, 10485760)
                             .build());
-            log.info("The file " + destination + " is successfully added to the bucket " + DEFAULT_BUCKET_NAME);
+            log.info("The file {} is successfully added to the bucket {}", destination, DEFAULT_BUCKET_NAME);
         } catch (ErrorResponseException | InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-            log.error("The exception was caught: " + e.getMessage());
+            log.error("The exception was caught: {}", e.getMessage());
         }
 
     }
@@ -94,7 +94,7 @@ public class MinioRepoImpl implements MinioRepo {
         catch (InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-            log.error("The exception was caught: " + e.getMessage());
+            log.error("The exception was caught: {}", e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -118,7 +118,7 @@ public class MinioRepoImpl implements MinioRepo {
         catch (InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-            log.error("The exception was caught: " + e.getMessage());
+            log.error("The exception was caught: {}", e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -152,11 +152,11 @@ public class MinioRepoImpl implements MinioRepo {
                             .bucket(DEFAULT_BUCKET_NAME)
                             .object(path)
                             .build());
-            log.info("The object " + path + " is removed successfully");
+            log.info("The object {} is removed successfully", path);
         } catch (ErrorResponseException | InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-            log.error("The exception was caught: " + e.getMessage());
+            log.error("The exception was caught: {}", e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -191,7 +191,7 @@ public class MinioRepoImpl implements MinioRepo {
         } catch (ErrorResponseException | InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-            log.error("The exception was caught: " + e.getMessage());
+            log.error("The exception was caught: {}", e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
         return false;
@@ -214,7 +214,7 @@ public class MinioRepoImpl implements MinioRepo {
         } catch (ErrorResponseException | InsufficientDataException | InternalException
                  | InvalidKeyException | InvalidResponseException | IOException
                  | NoSuchAlgorithmException | ServerException | XmlParserException e) {
-            log.error("The exception was caught: " + e.getMessage());
+            log.error("The exception was caught: {}", e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
         return listOfItemsExcludingParentFolder;
