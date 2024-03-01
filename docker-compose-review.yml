@@ -22,7 +22,7 @@ services:
     restart: on-failure
 
   cloud-file-storage:
-    image: icekubit/cloud-file-storage:v1.0.1
+    image: icekubit/cloud-file-storage:v1.0.2
     restart: on-failure
     ports:
       - "8080:8080"
