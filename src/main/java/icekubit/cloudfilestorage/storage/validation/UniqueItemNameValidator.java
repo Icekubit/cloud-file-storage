@@ -1,6 +1,6 @@
 package icekubit.cloudfilestorage.storage.validation;
 
-import icekubit.cloudfilestorage.storage.dto.Validatable;
+import icekubit.cloudfilestorage.storage.dto.FileOperationsDto;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
 import io.minio.messages.Item;
@@ -14,7 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class UniqueItemNameValidator implements
-        ConstraintValidator<UniqueItemNameConstraint, Validatable> {
+        ConstraintValidator<UniqueItemNameConstraint, FileOperationsDto> {
 
     @Autowired
     private MinioService minioService;
@@ -24,7 +24,7 @@ public class UniqueItemNameValidator implements
     }
 
     @Override
-    public boolean isValid(Validatable formDto, ConstraintValidatorContext context) {
+    public boolean isValid(FileOperationsDto formDto, ConstraintValidatorContext context) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Integer userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
 

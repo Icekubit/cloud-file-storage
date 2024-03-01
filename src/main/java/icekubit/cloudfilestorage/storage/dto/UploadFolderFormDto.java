@@ -8,12 +8,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Paths;
-
 @Data
 @UniqueItemNameConstraint
 @MaxPathLengthConstraint
-public class UploadFolderFormDto implements Validatable {
+public class UploadFolderFormDto implements FileOperationsDto {
     private MultipartFile[] files;
     private String currentPath;
     @NotBlank(message = "Name is required")

@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @UniqueItemNameConstraint
 @MaxPathLengthConstraint
 @FileNameConstraint
-public class UploadFileFormDto implements Validatable {
+public class UploadFileFormDto implements FileOperationsDto {
     private MultipartFile file;
     private String currentPath;
     @NotBlank(message = "Name is required")

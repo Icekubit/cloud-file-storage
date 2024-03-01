@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 @UniqueItemNameConstraint
 @MaxPathLengthConstraint
-public class RenameFormDto implements Validatable {
+public class RenameFormDto implements FileOperationsDto {
     @NotBlank(message = "Name is required")
     @Pattern(regexp = "^(?![\\s\\S]*[/\\\\:*?\"<>|]).*",
             message = "Object name cannot contain any of these characters: \\, /, :, *, ?, \", <, >, |")

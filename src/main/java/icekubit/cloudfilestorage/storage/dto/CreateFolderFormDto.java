@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 @UniqueItemNameConstraint
 @MaxPathLengthConstraint
-public class CreateFolderFormDto implements Validatable {
+public class CreateFolderFormDto implements FileOperationsDto {
     @NotBlank(message = "Folder name is required")
     @Pattern(regexp = "^(?![\\s\\S]*[/\\\\:*?\"<>|]).*",
             message = "Folder name cannot contain any of these characters: \\, /, :, *, ?, \", <, >, |")
