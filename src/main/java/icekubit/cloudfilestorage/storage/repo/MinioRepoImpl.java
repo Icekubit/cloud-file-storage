@@ -62,14 +62,14 @@ public class MinioRepoImpl implements MinioRepo {
     }
 
     @Override
-    public void uploadFile(MultipartFile file, String destination) {
+    public void uploadFile(InputStream inputStream, String destination) {
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(DEFAULT_BUCKET_NAME)
                             .object(destination)
                             .stream(
-                                    file.getInputStream(), -1, 10485760)
+                                    inputStream, -1, 10485760)
                             .build());
             log.info("The file {} is successfully added to the bucket {}", destination, DEFAULT_BUCKET_NAME);
         } catch (ErrorResponseException | InsufficientDataException | InternalException

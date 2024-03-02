@@ -35,7 +35,11 @@ public class MinioService {
 
     public void uploadMultipartFile(Integer userId, String path, MultipartFile file) {
         String minioPathToFile = getMinioPathToObject(userId, path) + "/" + file.getOriginalFilename();
-        minioRepo.uploadFile(file, minioPathToFile);
+        try {
+            minioRepo.uploadFile(file.getInputStream(), minioPathToFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public InputStream downloadFile(Integer userId, String path) {

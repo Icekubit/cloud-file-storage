@@ -85,7 +85,7 @@ public class MinioServiceTest {
     void shouldCreateUserRootFolderWhenUserRegisters() {
         registrationService.registerNewUser(testUser);
         Integer testUserId = userRepository.findByName(testUser.getName()).get().getId();
-        String pathToUserRootFolder = "user-" + testUserId + "-files/";
+        String pathToUserRootFolder = "user-" + testUserId + "-files";
         assertThat(minioRepo.doesObjectExist(pathToUserRootFolder)).isTrue();
     }
 
