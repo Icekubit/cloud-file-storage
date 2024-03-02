@@ -65,7 +65,7 @@ public class FileOperationsController {
                                @AuthenticationPrincipal CustomUserDetails userDetails) {
         Integer userId = userDetails.getUserId();
 
-        if (!pathToFolder.endsWith("/") || !minioService.doesObjectExist(userId, pathToFolder)) {
+        if (!pathToFolder.endsWith("/") || !minioService.doesFolderExist(userId, pathToFolder)) {
             throw new ResourceDoesNotExistException("Failed to download the folder on the path " + pathToFolder +
                     " because this folder doesn't exist");
         }
@@ -181,7 +181,7 @@ public class FileOperationsController {
         String path = renameFormDto.getCurrentPath();
         String newObjectName = renameFormDto.getObjectName();
 
-        if (relativePathToObject.endsWith("/") && !minioService.doesObjectExist(userId, relativePathToObject)) {
+        if (relativePathToObject.endsWith("/") && !minioService.doesFolderExist(userId, relativePathToObject)) {
             throw new ResourceDoesNotExistException(
                     "Fail to rename the folder on the path \"" + relativePathToObject +
                             "\" because this resource doesn't exist");

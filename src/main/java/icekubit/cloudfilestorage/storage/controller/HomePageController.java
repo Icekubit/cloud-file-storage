@@ -36,7 +36,7 @@ public class HomePageController {
                                Model model) {
         Integer userId = userDetails.getUserId();
 
-        if (!path.isEmpty() && !minioService.doesObjectExist(userId, path)) {
+        if (!path.isEmpty() && !minioService.doesFolderExist(userId, path)) {
             throw new ResourceDoesNotExistException("The folder on the path " + path
                     + " doesn't exist for user " + userDetails.getUsername());
         }

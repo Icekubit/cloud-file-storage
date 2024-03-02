@@ -73,7 +73,9 @@ public class MinioService {
         }
     }
 
-    public boolean doesObjectExist(Integer userId, String path) {
+    public boolean doesFolderExist(Integer userId, String path) {
+        // sometimes the path can end with '/', sometimes it can't
+        // so we remove additional '/' to avoid double '/' in the path
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
