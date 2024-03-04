@@ -1,3 +1,5 @@
+// DON'T JUDGE ME SO HARD PLEASE, I'M NOT FRONTENDER!!!
+
 const dropZone = document.getElementById('dropZone');
 const logout = document.getElementById('logout')
 
@@ -114,7 +116,7 @@ dropZone.addEventListener('drop', async (event) => {
         }
     }
 });
-logout.addEventListener("click", function (event) {
+logout.addEventListener("click", (event) => {
     event.preventDefault();
     fetch('logout', {method: 'POST'})
         .then(response => {
@@ -125,7 +127,7 @@ logout.addEventListener("click", function (event) {
         .catch(error => console.error('Error:', error));
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
 
     const folderIcons = document.getElementsByClassName("folder-icon");
     const fileIcons = document.getElementsByClassName("file-icon");
@@ -137,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    Array.from(folderIcons).forEach(function (folderIcon) {
+    Array.from(folderIcons).forEach((folderIcon) => {
         const objectName = folderIcon.parentElement.querySelector('p').textContent;
         const pathToObject = folderIcon.parentElement.querySelector('.relativePath').textContent
 
@@ -185,7 +187,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.addEventListener("click", hideContextMenu);
         });
 
-        folderIcon.addEventListener("click", function (event) {
+        folderIcon.addEventListener("click", (event) => {
             event.preventDefault();
 
             const pathQueryParam
@@ -199,7 +201,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 
-    Array.from(fileIcons).forEach(function (fileIcon) {
+    Array.from(fileIcons).forEach((fileIcon) => {
         const objectName = fileIcon.parentElement.querySelector('p').textContent;
         const pathToObject = fileIcon.parentElement.querySelector('.relativePath').textContent;
 
@@ -321,7 +323,3 @@ function hideContextMenu() {
     customContextMenu.style.display = "none";
     document.removeEventListener("click", hideContextMenu);
 }
-
-
-
-
