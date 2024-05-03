@@ -8,6 +8,7 @@ import icekubit.cloudfilestorage.storage.exception.FileDoesntExistException;
 import icekubit.cloudfilestorage.storage.exception.ResourceDoesNotExistException;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.CustomUserDetails;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -90,7 +91,9 @@ public class FileOperationsController {
     public RedirectView uploadFile(@Valid UploadFileFormDto uploadFileFormDto,
                                    BindingResult bindingResult,
                                    RedirectAttributes redirectAttributes,
-                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                   @AuthenticationPrincipal CustomUserDetails userDetails,
+                                   HttpServletRequest httpServletRequest) {
+        httpServletRequest.getRequestURI();
         Integer userId = userDetails.getUserId();
 
         String path = uploadFileFormDto.getCurrentPath();
