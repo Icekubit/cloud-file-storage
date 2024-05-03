@@ -275,11 +275,25 @@ document.addEventListener("DOMContentLoaded", () => {
     fileInput.addEventListener('change', (event) => {
         const fileList = event.target.files;
         if (fileList.length > 0) {
-            const fileName = fileList[0].name;
+            const file = fileList[0];
+            const fileName = file.name;
             const objectNameField = uploadFileForm.querySelector('input[name="objectName"]');
             objectNameField.value = fileName;
+            const reader = new FileReader();
+            reader.onload = function() {
+                uploadFileForm.submit();
+            };
+            reader.onerror = function() {
+                const myToastEl = document.getElementById('toast');
+                const myToast = new bootstrap.Toast(myToastEl);
+                document.getElementById('toastBody').innerText
+                    = 'You attempted to send a folder using the "Upload File" button. '
+                    + 'Please use the appropriate button';
+                myToast.show();
+            };
+            reader.readAsArrayBuffer(file.slice(0, 1));
         }
-        uploadFileForm.submit();
+        console.log(fileList);
     });
 
     const uploadFolderMenuItem = document.getElementById('uploadFolderMenuItem');
