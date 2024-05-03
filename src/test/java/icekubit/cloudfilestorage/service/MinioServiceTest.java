@@ -1,6 +1,7 @@
 package icekubit.cloudfilestorage.service;
 
 import icekubit.cloudfilestorage.auth.service.RegistrationService;
+import icekubit.cloudfilestorage.config.TestSecurityConfig;
 import icekubit.cloudfilestorage.storage.repo.MinioRepo;
 import icekubit.cloudfilestorage.storage.service.MinioService;
 import icekubit.cloudfilestorage.auth.model.dto.UserDto;
@@ -12,7 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -34,7 +37,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest
-@TestPropertySource("classpath:test-application.properties")
 @Transactional
 public class MinioServiceTest {
 
